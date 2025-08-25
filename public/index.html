@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic-SOLO R2 - Queue Management System</title>
+    <style>
+        /* FlowMatic Design System - Professional Light Theme */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #F8F9FA;
+            color: #1F2937;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* HEADER */
+        .header {
+            background: #FFFFFF;
+            border-bottom: 1px solid #E5E7EB;
+            padding: 24px 0;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #6B7280;
+            font-weight: 400;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #F3F4F6;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-online {
+            color: #059669;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+        }
+
+        /* MAIN CONTENT */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 32px;
+        }
+
+        .interfaces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        /* INTERFACE CARDS */
+        .interface-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #F3F4F6;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interface-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border-color: #E5E7EB;
+        }
+
+        .interface-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+        }
+
+        /* Service-specific accent colors */
+        .card-kiosk { --accent-color: #10B981; }
+        .card-terminal { --accent-color: #F59E0B; }
+        .card-monitor { --accent-color: #3B82F6; }
+        .card-customer { --accent-color: #8B5CF6; }
+        .card-admin { --accent-color: #EF4444; }
+        .card-analytics { --accent-color: #6366F1; }
+
+        .card-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: var(--accent-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .card-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .feature-tag {
+            background: #F3F4F6;
+            color: #374151;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: #FFFFFF;
+            border-top: 1px solid #E5E7EB;
+            padding: 32px 0;
+            text-align: center;
+            margin-top: 64px;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        .footer h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 16px;
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 24px;
+        }
+
+        .quick-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 24px;
+        }
+
+        .quick-link {
+            color: #6B7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .quick-link:hover {
+            color: #10B981;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #9CA3AF;
+            border-top: 1px solid #F3F4F6;
+            padding-top: 16px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 16px;
+            }
+
+            .interfaces-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .quick-links {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .interface-card {
+                padding: 24px 20px;
+            }
+        }
+
+        /* UTILITY CLASSES */
+        .text-center { text-align: center; }
+        .mb-16 { margin-bottom: 16px; }
+        .mb-24 { margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <h1>FlowMatic-SOLO R2</h1>
+            <p>Professional Queue Management System</p>
+            
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot"></span>
+                    <span class="status-online">System Online</span>
+                </div>
+                <div class="status-item">
+                    <span>Version 2.4</span>
+                </div>
+                <div class="status-item">
+                    <span id="currentTime">22:33</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        <div class="text-center mb-24">
+            <h2 style="font-size: 24px; font-weight: 600; color: #1F2937; margin-bottom: 12px;">
+                System Interfaces
+            </h2>
+            <p style="font-size: 16px; color: #6B7280;">
+                Select an interface to access different parts of the queue management system
+            </p>
+        </div>
+
+        <div class="interfaces-grid">
+            <!-- Customer Kiosk -->
+            <a href="/kiosk" class="interface-card card-kiosk">
+                <div class="card-icon">🏪</div>
+                <h3 class="card-title">Customer Kiosk</h3>
+                <p class="card-description">
+                    Self-service ticket generation for customers. Select services, get queue position, and receive estimated wait times.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">Ticket Generation</span>
+                    <span class="feature-tag">Queue Info</span>
+                    <span class="feature-tag">Multi-Language</span>
+                </div>
+            </a>
+
+            <!-- Agent Terminal -->
+            <a href="/terminal" class="interface-card card-terminal">
+                <div class="card-icon">💼</div>
+                <h3 class="card-title">Agent Terminal</h3>
+                <p class="card-description">
+                    Staff interface for managing customer queues. Call next customer, complete services, and handle special cases.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">Call Next</span>
+                    <span class="feature-tag">Complete Service</span>
+                    <span class="feature-tag">Queue Management</span>
+                </div>
+            </a>
+
+            <!-- Monitor Display -->
+            <a href="/monitor" class="interface-card card-monitor">
+                <div class="card-icon">📺</div>
+                <h3 class="card-title">Monitor Display</h3>
+                <p class="card-description">
+                    Large screen display for public areas. Shows "Now Serving" information and queue status for all customers.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">Now Serving</span>
+                    <span class="feature-tag">Real-time Updates</span>
+                    <span class="feature-tag">Full Screen</span>
+                </div>
+            </a>
+
+            <!-- Customer Display -->
+            <a href="/customer" class="interface-card card-customer">
+                <div class="card-icon">👥</div>
+                <h3 class="card-title">Customer Display</h3>
+                <p class="card-description">
+                    Counter-specific displays showing current ticket being served. Clean, high-contrast design for visibility.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">Counter Specific</span>
+                    <span class="feature-tag">High Contrast</span>
+                    <span class="feature-tag">Auto Updates</span>
+                </div>
+            </a>
+
+            <!-- Admin Panel -->
+            <a href="/admin" class="interface-card card-admin">
+                <div class="card-icon">⚙️</div>
+                <h3 class="card-title">Admin Panel</h3>
+                <p class="card-description">
+                    System administration and configuration. Manage services, agents, settings, and view comprehensive reports.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">System Config</span>
+                    <span class="feature-tag">User Management</span>
+                    <span class="feature-tag">Reports</span>
+                </div>
+            </a>
+
+            <!-- Analytics Dashboard -->
+            <a href="/analytics" class="interface-card card-analytics">
+                <div class="card-icon">📊</div>
+                <h3 class="card-title">Analytics Dashboard</h3>
+                <p class="card-description">
+                    Business intelligence and performance metrics. Real-time insights, trends, and operational analytics.
+                </p>
+                <div class="card-features">
+                    <span class="feature-tag">Real-time Data</span>
+                    <span class="feature-tag">Performance Metrics</span>
+                    <span class="feature-tag">Trends</span>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>FlowMatic-SOLO R2</h3>
+            <p>
+                Professional queue management system designed for small to medium businesses. 
+                Optimized for Raspberry Pi deployment with enterprise-grade features.
+            </p>
+            
+            <div class="quick-links">
+                <a href="/api/health" class="quick-link">System Health</a>
+                <a href="/admin" class="quick-link">Administration</a>
+                <a href="#" class="quick-link">Documentation</a>
+                <a href="#" class="quick-link">Support</a>
+            </div>
+            
+            <div class="copyright">
+                © 2025 FlowMatic-SOLO R2. Professional Queue Management System.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Update time immediately and then every minute
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        // Add click analytics (optional)
+        document.querySelectorAll('.interface-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const cardType = this.querySelector('.card-title').textContent;
+                console.log(`Interface accessed: ${cardType}`);
+                
+                // Optional: Send analytics to admin panel
+                // Could track interface usage patterns
+            });
+        });
+
+        // Add keyboard shortcuts for quick navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        window.location.href = '/kiosk';
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        window.location.href = '/terminal';
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        window.location.href = '/monitor';
+                        break;
+                    case '4':
+                        e.preventDefault();
+                        window.location.href = '/customer';
+                        break;
+                    case '5':
+                        e.preventDefault();
+                        window.location.href = '/admin';
+                        break;
+                    case '6':
+                        e.preventDefault();
+                        window.location.href = '/analytics';
+                        break;
+                }
+            }
+        });
+
+        // Add hover effects for better UX
+        document.querySelectorAll('.interface-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderColor = getComputedStyle(this).getPropertyValue('--accent-color');
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.borderColor = '#F3F4F6';
+            });
+        });
+    </script>
+</body>
+</html>

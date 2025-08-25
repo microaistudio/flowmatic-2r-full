@@ -1,0 +1,40 @@
+ Git Backup Commands for Phase 1.5
+Since you've completed Phase 1.5 (Settings management), here are the commands to create your backup checkpoint:
+Step 1: Check Current Status
+bash# See what files have been modified
+git status
+
+# View your recent commits
+git log --oneline -5
+Step 2: Stage and Commit All Changes
+bash# Add all files
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: complete settings management - Phase 1.5 done"
+Step 3: Create Version Tag
+bash# Create tag for this stable checkpoint
+git tag v1.5 -m "Phase 1.5: Settings management complete"
+
+# Verify tag was created
+git tag -l
+Step 4: Push to GitHub
+bash# Push commits and tags to remote
+git push origin main --tags
+
+# Or if you haven't set upstream
+git push -u origin main --tags
+Step 5: Verify Backup
+bash# Check that everything is pushed
+git status
+# Should show "Your branch is up to date with 'origin/main'"
+
+# Verify tag is on GitHub
+git ls-remote --tags origin
+🚨 If You Need to Recover Later
+bash# To go back to this checkpoint
+git checkout v1.5
+
+# To create a new branch from this point
+git checkout -b recovery-from-v1.5 v1.5
+Once you've completed the backup, we can start on Phase 1.6 (Unit tests) with a clean checkpoint to revert to if needed! 👍

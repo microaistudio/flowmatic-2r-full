@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FlowMatic API Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; }
+        .test-section { margin: 2rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+        .success { background: #e8f5e8; border-color: #4caf50; }
+        .error { background: #fee; border-color: #f44336; }
+        pre { background: #f8f8f8; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+        button { padding: 0.5rem 1rem; margin: 0.5rem; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #005a8b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 FlowMatic API Debug Tool</h1>
+        
+        <div class="test-section">
+            <h3>Test 1: Basic API Connection</h3>
+            <button onclick="testBasicConnection()">Test Connection</button>
+            <div id="connectionResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Services API Response</h3>
+            <button onclick="testServicesAPI()">Test /api/kiosk/services</button>
+            <div id="servicesResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Socket.IO Connection</h3>
+            <button onclick="testSocketConnection()">Test Socket.IO</button>
+            <div id="socketResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Create Test Ticket</h3>
+            <button onclick="testCreateTicket()">Test Ticket Creation</button>
+            <div id="ticketResult"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        async function testBasicConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = '<p>Testing basic connection...</p>';
+            
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Connection Success</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Connection Failed</h4>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Connection Error</h4>
+                        <p>${error.message}</p>
+                        <p><strong>Make sure your FlowMatic server is running on port 5050!</strong></p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testServicesAPI() {
+            const resultDiv = document.getElementById('servicesResult');
+            resultDiv.innerHTML = '<p>Testing services API...</p>';
+            
+            try {
+                const response = await fetch('/api/kiosk/services');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Services API Success</h4>
+                            <p><strong>Response format analysis:</strong></p>
+                            <ul>
+                                <li>Has 'services' property: ${data.services ? '✅' : '❌'}</li>
+                                <li>Services count: ${data.services ? data.services.length : (Array.isArray(data) ? data.length : 'Unknown')}</li>
+                                <li>Expected properties check:</li>
+                                <ul>
+                                    ${data.services ? data.services.map((service, i) => `
+                                        <li>Service ${i + 1}: id=${service.id}, name="${service.name}", queueCount=${service.queueCount || 'missing'}</li>
+                                    `).join('') : '<li>No services array found</li>'}
+                                </ul>
+                            </ul>
+                            <h5>Raw Response:</h5>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Services API Failed</h4>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Services API Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function testSocketConnection() {
+            const resultDiv = document.getElementById('socketResult');
+            resultDiv.innerHTML = '<p>Testing Socket.IO connection...</p>';
+            
+            try {
+                const socket = io();
+                
+                socket.on('connect', () => {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Socket.IO Connected</h4>
+                            <p>Socket ID: ${socket.id}</p>
+                            <p>Transport: ${socket.io.engine.transport.name}</p>
+                        </div>
+                    `;
+                });
+                
+                socket.on('connect_error', (error) => {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Socket.IO Connection Error</h4>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                });
+                
+                // Test timeout
+                setTimeout(() => {
+                    if (!socket.connected) {
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                <h4>❌ Socket.IO Connection Timeout</h4>
+                                <p>Could not connect to Socket.IO server</p>
+                            </div>
+                        `;
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Socket.IO Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testCreateTicket() {
+            const resultDiv = document.getElementById('ticketResult');
+            resultDiv.innerHTML = '<p>Testing ticket creation...</p>';
+            
+            try {
+                const response = await fetch('/api/kiosk/tickets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        serviceId: 1,
+                        language: 'en'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Ticket Creation Success</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Ticket Creation Failed</h4>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Ticket Creation Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run basic connection test
+        window.onload = () => {
+            testBasicConnection();
+        };
+    </script>
+</body>
+</html>

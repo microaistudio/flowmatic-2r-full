@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Kiosk - Service Selection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #faf9f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            padding: 1.5rem;
+            max-width: 1300px;
+            margin: 0 auto;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .header {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 24px;
+            padding: 1.5rem 2.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-symbol {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: white;
+            box-shadow: 0 3px 12px rgba(134, 185, 127, 0.25);
+        }
+
+        .logo-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            letter-spacing: -0.3px;
+        }
+
+        .status-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f8f9f6;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: #86b97f;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        .status-indicator.offline {
+            background: #ff6b6b;
+            animation: none;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        .time-zone {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .lang-controls {
+            display: flex;
+            background: #f5f4f1;
+            border-radius: 14px;
+            padding: 4px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .lang-button {
+            padding: 0.7rem 1.2rem;
+            background: transparent;
+            border: none;
+            color: #6b6b6b;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 10px;
+        }
+
+        .lang-button.active {
+            background: #86b97f;
+            color: white;
+            box-shadow: 0 2px 6px rgba(134, 185, 127, 0.25);
+        }
+
+        .main-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .services-dashboard {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            letter-spacing: -0.3px;
+        }
+
+        .dashboard-subtitle {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .quick-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .quick-stat {
+            background: #f8f9f6;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #e8e7e4;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .quick-stat-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .quick-stat-label {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .services-dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .service-dashboard-card {
+            background: #ffffff;
+            border: 2px solid #f5f4f1;
+            border-radius: 18px;
+            padding: 1.75rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+        }
+
+        .service-dashboard-card.general {
+            border-color: #86b97f;
+            background: linear-gradient(135deg, rgba(134, 185, 127, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-dashboard-card.general:hover {
+            border-color: #7ab373;
+            box-shadow: 0 12px 36px rgba(134, 185, 127, 0.12);
+        }
+
+        .service-dashboard-card.account {
+            border-color: #ff9f54;
+            background: linear-gradient(135deg, rgba(255, 159, 84, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-dashboard-card.account:hover {
+            border-color: #ff8c42;
+            box-shadow: 0 12px 36px rgba(255, 159, 84, 0.12);
+        }
+
+        .service-dashboard-card.vip {
+            border-color: #9b8ce8;
+            background: linear-gradient(135deg, rgba(155, 140, 232, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-dashboard-card.vip:hover {
+            border-color: #8b7ed8;
+            box-shadow: 0 12px 36px rgba(155, 140, 232, 0.12);
+        }
+
+        .service-dashboard-card.technical {
+            border-color: #64a8d1;
+            background: linear-gradient(135deg, rgba(100, 168, 209, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-dashboard-card.technical:hover {
+            border-color: #5a96bb;
+            box-shadow: 0 12px 36px rgba(100, 168, 209, 0.12);
+        }
+
+        .service-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
+        }
+
+        .service-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .service-icon-box {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .service-dashboard-card.general .service-icon-box {
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+        }
+
+        .service-dashboard-card.account .service-icon-box {
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+        }
+
+        .service-dashboard-card.vip .service-icon-box {
+            background: linear-gradient(135deg, #9b8ce8 0%, #8b7ed8 100%);
+        }
+
+        .service-dashboard-card.technical .service-icon-box {
+            background: linear-gradient(135deg, #64a8d1 0%, #5a96bb 100%);
+        }
+
+        .service-text {
+            flex: 1;
+        }
+
+        .service-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 0.25rem;
+        }
+
+        .service-card-desc {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            line-height: 1.3;
+        }
+
+        .priority-badge {
+            background: rgba(44, 44, 44, 0.08);
+            color: #4a4a4a;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .wait-time-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .wait-metric {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .wait-metric-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #9b9b9b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .wait-metric-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .queue-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .now-serving {
+            font-weight: 600;
+        }
+
+        .queue-length {
+            background: rgba(134, 185, 127, 0.1);
+            color: #86b97f;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .info-widget {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .widget-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .widget-icon {
+            font-size: 1rem;
+        }
+
+        .overview-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric-block {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .metric-primary {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .metric-secondary {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .time-widget {
+            text-align: center;
+        }
+
+        .time-main {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .date-main {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .assistance-widget {
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .assistance-icon {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .assistance-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .assistance-desc {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* Printer Mode Widget */
+        .printer-mode-widget {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .printer-mode-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .printer-mode-label {
+            font-size: 0.85rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .printer-toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #e8e7e4;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .printer-toggle-switch.active {
+            background: #86b97f;
+        }
+
+        .printer-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 10px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .printer-toggle-switch.active .printer-toggle-slider {
+            transform: translateX(20px);
+        }
+
+        .printer-status {
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: #f8f9f6;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            text-align: center;
+        }
+
+        .footer-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            color: #9b9b9b;
+            font-size: 0.8rem;
+            font-weight: 500;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-separator {
+            width: 1px;
+            height: 16px;
+            background: #e8e7e4;
+        }
+
+        /* Loading and error states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f5f4f1;
+            border-top-color: #86b97f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .error {
+            background: #ffe6e6 !important;
+            border-color: #ffb3b3 !important;
+        }
+
+        /* Error message */
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            border: 1px solid #fcc;
+        }
+
+        .error-message.active {
+            display: flex;
+        }
+
+        /* Connection status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e8e7e4;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 100;
+            display: none;
+        }
+
+        .connection-status.disconnected {
+            display: block;
+            background: #fee;
+            color: #c00;
+            border-color: #fcc;
+        }
+
+        .connection-status.connecting {
+            display: block;
+            background: #fef9e7;
+            color: #8b5a00;
+            border-color: #ede0a3;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 1rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #86b97f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            margin: 0 auto 1.5rem;
+        }
+
+        .ticket-display {
+            background: #f8f9f6;
+            border: 2px solid #86b97f;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .ticket-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #86b97f;
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-info {
+            color: #6b6b6b;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .ticket-info div {
+            margin: 0.5rem 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: #86b97f;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #7ab373;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(134, 185, 127, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f4f1;
+            color: #6b6b6b;
+        }
+
+        .btn-secondary:hover {
+            background: #eceae5;
+            transform: translateY(-2px);
+        }
+
+        /* Print Status Indicator */
+        .print-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e8e7e4;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .print-status.active {
+            display: flex;
+        }
+
+        .print-status.success {
+            background: #f0f9f0;
+            color: #2d5a2d;
+            border-color: #86b97f;
+        }
+
+        .print-status.error {
+            background: #fff0f0;
+            color: #8b0000;
+            border-color: #ff6b6b;
+        }
+
+        .print-status.warning {
+            background: #fff8e1;
+            color: #e65100;
+            border-color: #ff9f54;
+        }
+
+        .print-status.info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-color: #64a8d1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-panel {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1.25rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+            
+            .header {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1rem;
+                text-align: center;
+            }
+            
+            .services-dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .quick-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* Print Styles - Thermal Printer Format */
+        @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+            
+            /* Hide everything except ticket content */
+            body > * {
+                display: none !important;
+            }
+            
+            /* Create printable ticket */
+            body::after {
+                content: "";
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 80mm;
+                background: white;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+        Connecting to server...
+    </div>
+
+    <!-- Print Status -->
+    <div class="print-status" id="printStatus">
+        <span id="printStatusIcon">🖨️</span>
+        <span id="printStatusText">Print status</span>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo-symbol">🎫</div>
+                <div class="logo-title">FlowMatic</div>
+            </div>
+            
+            <div class="status-center">
+                <div class="system-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span class="status-label" id="statusLabel">Connecting...</span>
+                </div>
+                <div class="time-zone">Live Queue Management Dashboard</div>
+            </div>
+            
+            <div class="lang-controls">
+                <button class="lang-button active" data-lang="en">EN</button>
+                <button class="lang-button" data-lang="th">TH</button>
+                <button class="lang-button" data-lang="hi">HI</button>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="main-dashboard">
+            <!-- Services Dashboard -->
+            <div class="services-dashboard">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">Service Selection</h1>
+                        <p class="dashboard-subtitle">Select your preferred service to join the queue</p>
+                    </div>
+                    <div class="quick-stats" id="quickStats">
+                        <div class="quick-stat">
+                            <div class="quick-stat-number">-</div>
+                            <div class="quick-stat-label">Loading</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Error Message -->
+                <div class="error-message" id="errorMessage">
+                    <span>⚠️</span>
+                    <span id="errorText"></span>
+                </div>
+                
+                <div class="services-dashboard-grid" id="servicesDashboardGrid">
+                    <!-- Services will be loaded from backend -->
+                </div>
+            </div>
+
+            <!-- Information Panel -->
+            <div class="info-panel">
+                <!-- System Overview -->
+                <div class="info-widget">
+                    <h3 class="widget-title">
+                        <span class="widget-icon">📊</span>
+                        Queue Overview
+                    </h3>
+                    <div class="overview-metrics" id="overviewMetrics">
+                        <!-- Real metrics from backend -->
+                    </div>
+                </div>
+
+                <!-- Time Widget -->
+                <div class="info-widget time-widget">
+                    <h3 class="widget-title">
+                        <span class="widget-icon">🕐</span>
+                        Current Time
+                    </h3>
+                    <div class="time-main" id="currentTime">00:00 AM</div>
+                    <div class="date-main" id="currentDate">Loading...</div>
+                </div>
+
+                <!-- Printer Mode Widget -->
+                <div class="info-widget printer-mode-widget">
+                    <h3 class="widget-title">
+                        <span class="widget-icon">🖨️</span>
+                        Printer Settings
+                    </h3>
+                    <div class="printer-mode-toggle">
+                        <span class="printer-mode-label">Browser Print Mode</span>
+                        <div class="printer-toggle-switch" id="printerModeToggle" onclick="app.togglePrintMode()">
+                            <div class="printer-toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="printer-status" id="printerStatus">
+                        Using browser print (no QZ Tray needed)
+                    </div>
+                </div>
+
+                <!-- Assistance Widget -->
+                <div class="info-widget assistance-widget">
+                    <div class="assistance-icon">🎧</div>
+                    <div class="assistance-title">Customer Support</div>
+                    <div class="assistance-desc">Need help? Our support team is available to assist you with any questions or accessibility needs.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-bar">
+            <div class="footer-content">
+                <span>📊 Real-time queue analytics</span>
+                <div class="footer-separator"></div>
+                <span>⏱️ Live wait times and queue positions</span>
+                <div class="footer-separator"></div>
+                <span>💡 Touch any service card to begin</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Modal -->
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-content">
+            <div class="success-icon">✓</div>
+            <div class="modal-title">Ticket Created Successfully!</div>
+            <div class="ticket-display">
+                <div class="ticket-number" id="ticketNumber">A001</div>
+                <div class="ticket-info" id="ticketInfo">
+                    <div>Service: <strong>Loading...</strong></div>
+                    <div>Estimated Wait: <strong>Loading...</strong></div>
+                    <div>Position in Queue: <strong>Loading...</strong></div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="app.printTicket()">🖨️ Print Ticket</button>
+                <button class="btn btn-secondary" onclick="app.closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- QZ Tray script - optional, won't break if not loaded -->
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.1/qz-tray.min.js" onerror="console.log('QZ Tray not loaded - using browser print mode')"></script>
+    <script src="print-manager.js"></script>
+    <script>
+        class KioskApp {
+            constructor() {
+                this.socket = null;
+                this.services = [];
+                this.currentLanguage = 'en';
+                this.connected = false;
+                this.printInProgress = false;
+                this.currentTicketData = null;
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Initializing FlowMatic Kiosk...');
+                
+                try {
+                    this.initSocket();
+                    await this.loadServices();
+                    this.setupEventListeners();
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    
+                    // Initialize printer mode display
+                    this.updatePrinterModeDisplay();
+                    
+                    console.log('✅ Kiosk initialized successfully');
+                } catch (error) {
+                    console.error('❌ Failed to initialize kiosk:', error);
+                    this.showError('System initialization failed. Please contact support.');
+                    this.updateConnectionStatus('error');
+                }
+            }
+
+            initSocket() {
+                console.log('🔌 Connecting to Socket.IO server...');
+                this.socket = io('/kiosk');
+                
+                this.socket.on('connect', () => {
+                    console.log('✅ Connected to server via Socket.IO');
+                    this.connected = true;
+                    this.updateConnectionStatus('connected');
+                    
+                    // Join kiosk namespace for updates
+                    this.socket.emit('join-all');
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('❌ Disconnected from server');
+                    this.connected = false;
+                    this.updateConnectionStatus('disconnected');
+                });
+
+                this.socket.on('connect_error', (error) => {
+                    console.error('❌ Socket connection error:', error);
+                    this.updateConnectionStatus('error');
+                });
+
+                // Real-time event handlers
+                this.socket.on('ticket-created', (data) => {
+                    console.log('📨 Ticket created event:', data);
+                    this.refreshServices();
+                });
+
+                this.socket.on('queue-updated', (data) => {
+                    console.log('📊 Queue updated event:', data);
+                    this.updateServiceQueue(data);
+                });
+
+                this.socket.on('ticket-called', (data) => {
+                    console.log('📞 Ticket called event:', data);
+                    this.refreshServices();
+                });
+
+                this.socket.on('ticket-completed', (data) => {
+                    console.log('✅ Ticket completed event:', data);
+                    this.refreshServices();
+                });
+            }
+
+            updateConnectionStatus(status) {
+                const statusEl = document.getElementById('connectionStatus');
+                const indicatorEl = document.getElementById('statusIndicator');
+                const labelEl = document.getElementById('statusLabel');
+
+                switch (status) {
+                    case 'connected':
+                        statusEl.className = 'connection-status';
+                        indicatorEl.className = 'status-indicator';
+                        labelEl.textContent = 'System Online';
+                        break;
+                    case 'disconnected':
+                        statusEl.className = 'connection-status disconnected';
+                        indicatorEl.className = 'status-indicator offline';
+                        labelEl.textContent = 'Connection Lost';
+                        break;
+                    case 'connecting':
+                        statusEl.className = 'connection-status connecting';
+                        indicatorEl.className = 'status-indicator offline';
+                        labelEl.textContent = 'Connecting...';
+                        break;
+                    case 'error':
+                        statusEl.className = 'connection-status disconnected';
+                        indicatorEl.className = 'status-indicator offline';
+                        labelEl.textContent = 'System Error';
+                        break;
+                }
+            }
+
+            showPrintStatus(type, message) {
+                const statusEl = document.getElementById('printStatus');
+                const iconEl = document.getElementById('printStatusIcon');
+                const textEl = document.getElementById('printStatusText');
+
+                const icons = {
+                    'success': '✅',
+                    'error': '❌',
+                    'warning': '⚠️',
+                    'printing': '🖨️',
+                    'info': 'ℹ️'
+                };
+
+                statusEl.className = `print-status active ${type}`;
+                iconEl.textContent = icons[type] || '🖨️';
+                textEl.textContent = message;
+
+                // Auto-hide after delay
+                if (type !== 'printing') {
+                    setTimeout(() => {
+                        statusEl.classList.remove('active');
+                    }, type === 'error' ? 8000 : 4000);
+                }
+            }
+
+            async loadServices() {
+                console.log('📋 Loading services from backend...');
+                
+                try {
+                    const response = await fetch('/api/kiosk/services');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: Failed to load services`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('📋 Services loaded:', data);
+                    
+                    // Handle different response formats
+                    this.services = data.services || data || [];
+                    
+                    if (!Array.isArray(this.services)) {
+                        throw new Error('Invalid services response format');
+                    }
+                    
+                    this.renderServices();
+                    this.updateQuickStats();
+                    this.updateOverviewMetrics();
+                    
+                } catch (error) {
+                    console.error('❌ Error loading services:', error);
+                    this.showError(`Failed to load services: ${error.message}`);
+                    this.services = [];
+                    this.renderEmptyState();
+                }
+            }
+
+            renderServices() {
+                const grid = document.getElementById('servicesDashboardGrid');
+                
+                if (!this.services.length) {
+                    this.renderEmptyState();
+                    return;
+                }
+
+                const serviceClasses = ['general', 'account', 'vip', 'technical'];
+                const serviceIcons = ['📋', '💼', '⭐', '🔧'];
+                
+                grid.innerHTML = this.services.map((service, index) => {
+                    // Map database fields to display values
+                    const id = service.id;
+                    const name = service.name || 'Unknown Service';
+                    const description = service.description || 'Select this service';
+                    const queueCount = service.queueCount || 0;
+                    const nowServing = service.nowServing || 'None';
+                    const estimatedWait = service.estimatedWaitMinutes || service.realWaitTime || 0;
+                    
+                    return `
+                        <div class="service-dashboard-card ${serviceClasses[index % 4]}" 
+                             data-service-id="${id}"
+                             onclick="app.selectService(${id})">
+                            <div class="service-card-header">
+                                <div class="service-meta">
+                                    <div class="service-icon-box">${serviceIcons[index % 4]}</div>
+                                    <div class="service-text">
+                                        <div class="service-card-title">${name}</div>
+                                        <div class="service-card-desc">${description}</div>
+                                    </div>
+                                </div>
+                                <div class="priority-badge">Service ${service.prefix || 'A'}</div>
+                            </div>
+                            
+                            <div class="wait-time-dashboard">
+                                <div class="wait-metric">
+                                    <div class="wait-metric-label">Est. Wait</div>
+                                    <div class="wait-metric-value">${estimatedWait} min</div>
+                                </div>
+                                <div class="wait-metric">
+                                    <div class="wait-metric-label">In Queue</div>
+                                    <div class="wait-metric-value">${queueCount}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="queue-summary">
+                                <span class="now-serving">Now serving: ${nowServing}</span>
+                                <span class="queue-length">${queueCount} waiting</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderEmptyState() {
+                const grid = document.getElementById('servicesDashboardGrid');
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #6b6b6b;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔄</div>
+                        <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Loading Services</div>
+                        <div style="font-size: 0.9rem;">Please wait while we load available services...</div>
+                    </div>
+                `;
+            }
+
+            updateQuickStats() {
+                const statsContainer = document.getElementById('quickStats');
+                
+                if (!this.services.length) {
+                    statsContainer.innerHTML = `
+                        <div class="quick-stat">
+                            <div class="quick-stat-number">-</div>
+                            <div class="quick-stat-label">Loading</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Calculate real statistics from services
+                const totalWaiting = this.services.reduce((sum, service) => 
+                    sum + (service.queueCount || 0), 0);
+                const totalServing = this.services.reduce((sum, service) => 
+                    sum + (service.servingCount || 0), 0);
+                const avgWait = this.services.length > 0 
+                    ? Math.round(this.services.reduce((sum, service) => 
+                        sum + (service.estimatedWaitMinutes || service.realWaitTime || 0), 0) / this.services.length)
+                    : 0;
+
+                statsContainer.innerHTML = `
+                    <div class="quick-stat">
+                        <div class="quick-stat-number">${totalWaiting}</div>
+                        <div class="quick-stat-label">Waiting</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-number">${totalServing}</div>
+                        <div class="quick-stat-label">Serving</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-number">${avgWait}</div>
+                        <div class="quick-stat-label">Avg Min</div>
+                    </div>
+                `;
+            }
+
+            updateOverviewMetrics() {
+                const metricsContainer = document.getElementById('overviewMetrics');
+                
+                const totalServices = this.services.length;
+                const activeServices = this.services.filter(s => s.is_active !== false).length;
+                const totalWaiting = this.services.reduce((sum, service) => 
+                    sum + (service.queueCount || 0), 0);
+                const totalServing = this.services.reduce((sum, service) => 
+                    sum + (service.servingCount || 0), 0);
+
+                metricsContainer.innerHTML = `
+                    <div class="metric-block">
+                        <div class="metric-primary">${totalServices}</div>
+                        <div class="metric-secondary">Services</div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-primary">${activeServices}</div>
+                        <div class="metric-secondary">Active</div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-primary">${totalWaiting}</div>
+                        <div class="metric-secondary">Waiting</div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-primary">${totalServing}</div>
+                        <div class="metric-secondary">Serving</div>
+                    </div>
+                `;
+            }
+
+            updateServiceQueue(data) {
+                console.log('📊 Updating service queue:', data);
+                
+                // Find and update the service
+                const service = this.services.find(s => s.id === data.serviceId);
+                if (service) {
+                    service.queueCount = data.waiting || 0;
+                    service.servingCount = data.serving || 0;
+                    
+                    // Update the UI for this specific service
+                    const card = document.querySelector(`[data-service-id="${data.serviceId}"]`);
+                    if (card) {
+                        const queueCountEl = card.querySelector('.wait-metric-value:last-child');
+                        const queueLengthEl = card.querySelector('.queue-length');
+                        
+                        if (queueCountEl) queueCountEl.textContent = data.waiting || 0;
+                        if (queueLengthEl) queueLengthEl.textContent = `${data.waiting || 0} waiting`;
+                    }
+                    
+                    // Update summary stats
+                    this.updateQuickStats();
+                    this.updateOverviewMetrics();
+                }
+            }
+
+            async refreshServices() {
+                // Refresh services data after events
+                await this.loadServices();
+            }
+
+            async selectService(serviceId) {
+                console.log('🎯 Selecting service:', serviceId);
+                
+                if (this.printInProgress) {
+                    console.log('⚠️ Print in progress, ignoring service selection');
+                    return;
+                }
+                
+                try {
+                    const service = this.services.find(s => s.id === serviceId);
+                    if (!service) {
+                        throw new Error('Service not found');
+                    }
+
+                    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    if (card) card.classList.add('loading');
+                    
+                    this.hideError();
+
+                    // Create ticket via API
+                    const response = await fetch('/api/kiosk/tickets', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            serviceId: serviceId,
+                            priority: 0
+                        })
+                    });
+
+                    const responseData = await response.json();
+                    console.log('📋 Create ticket response:', response.status, responseData);
+
+                    if (!response.ok) {
+                        throw new Error(responseData.error || responseData.message || 'Failed to create ticket');
+                    }
+
+                    // Handle successful response
+                    const ticketData = responseData.ticket || responseData;
+                    this.showTicketModal(ticketData, service);
+
+                } catch (error) {
+                    console.error('❌ Error selecting service:', error);
+                    this.showError(error.message || 'Failed to create ticket. Please try again.');
+                    this.showPrintStatus('error', 'Failed to create ticket');
+                } finally {
+                    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    if (card) card.classList.remove('loading');
+                }
+            }
+
+            showTicketModal(ticket, service) {
+                console.log('🎫 Showing ticket modal:', ticket, service);
+                
+                // Store current ticket data for printing
+                this.currentTicketData = {
+                    number: ticket.ticketNumber || 'Unknown',
+                    service: service.name,
+                    wait: `${ticket.estimatedWaitMinutes || 0} minutes`,
+                    position: ticket.queuePosition || 'N/A',
+                    created: new Date().toLocaleTimeString()
+                };
+                
+                // Update modal content
+                document.getElementById('ticketNumber').textContent = this.currentTicketData.number;
+                document.getElementById('ticketInfo').innerHTML = `
+                    <div>Service: <strong>${this.currentTicketData.service}</strong></div>
+                    <div>Estimated Wait: <strong>${this.currentTicketData.wait}</strong></div>
+                    <div>Position in Queue: <strong>${this.currentTicketData.position}</strong></div>
+                    <div>Created at: <strong>${this.currentTicketData.created}</strong></div>
+                `;
+                
+                // Show modal
+                document.getElementById('ticketModal').classList.add('active');
+                
+                // Auto-print if enabled
+                if (window.printManager && window.printManager.isProductionMode()) {
+                    console.log('🏭 Production mode detected - attempting auto-print');
+                    setTimeout(() => this.printTicket(), 500);
+                }
+            }
+
+            async printTicket() {
+                console.log('🖨️ Print ticket requested');
+                
+                if (!this.currentTicketData) {
+                    console.error('❌ No ticket data to print');
+                    this.showPrintStatus('error', 'No ticket data available');
+                    return;
+                }
+                
+                if (this.printInProgress) {
+                    console.log('⚠️ Print already in progress');
+                    return;
+                }
+                
+                this.printInProgress = true;
+                this.showPrintStatus('printing', 'Sending to printer...');
+                
+                try {
+                    if (window.printManager) {
+                        const success = await window.printManager.printTicket(this.currentTicketData);
+                        
+                        if (success) {
+                            this.showPrintStatus('success', 'Ticket printed successfully');
+                            console.log('✅ Ticket printed successfully');
+                        } else {
+                            throw new Error('Print manager returned failure');
+                        }
+                    } else {
+                        throw new Error('Print manager not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Print failed:', error);
+                    this.showPrintStatus('error', `Print failed: ${error.message}`);
+                } finally {
+                    this.printInProgress = false;
+                }
+            }
+
+            closeModal() {
+                document.getElementById('ticketModal').classList.remove('active');
+                this.currentTicketData = null;
+                this.printInProgress = false;
+            }
+
+            togglePrintMode() {
+                if (window.printManager) {
+                    const currentMode = window.printManager.USE_QZ_TRAY;
+                    window.printManager.setPrintMode(!currentMode);
+                    this.updatePrinterModeDisplay();
+                    
+                    const newMode = !currentMode ? 'QZ Tray' : 'Browser';
+                    this.showPrintStatus('info', `Switched to ${newMode} printing`);
+                }
+            }
+
+            updatePrinterModeDisplay() {
+                if (window.printManager) {
+                    const toggle = document.getElementById('printerModeToggle');
+                    const status = document.getElementById('printerStatus');
+                    const info = window.printManager.getPrinterInfo();
+                    
+                    if (window.printManager.USE_QZ_TRAY) {
+                        toggle.classList.add('active');
+                        status.textContent = `QZ Tray mode - ${info.connected ? 'Connected' : 'Not connected'}`;
+                    } else {
+                        toggle.classList.remove('active');
+                        status.textContent = 'Using browser print (no QZ Tray needed)';
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                // Language buttons
+                document.querySelectorAll('.lang-button').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.lang-button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentLanguage = e.target.getAttribute('data-lang');
+                        console.log('Language changed to:', this.currentLanguage);
+                    });
+                });
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                const dateStr = now.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                
+                document.getElementById('currentTime').textContent = timeStr;
+                document.getElementById('currentDate').textContent = dateStr;
+            }
+
+            showError(message) {
+                const errorEl = document.getElementById('errorMessage');
+                const errorTextEl = document.getElementById('errorText');
+                
+                errorTextEl.textContent = message;
+                errorEl.classList.add('active');
+                
+                // Auto-hide after 10 seconds
+                setTimeout(() => {
+                    errorEl.classList.remove('active');
+                }, 10000);
+            }
+
+            hideError() {
+                document.getElementById('errorMessage').classList.remove('active');
+            }
+        }
+
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new KioskApp();
+        });
+
+        // Global functions for onclick handlers
+        window.app = null;
+    </script>
+</body>
+</html>

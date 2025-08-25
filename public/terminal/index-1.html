@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Terminal - Advanced Professional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cream: #faf9f6;
+            --white: #ffffff;
+            --light-gray: #f5f4f1;
+            --gray: #e8e7e4;
+            --medium-gray: #9b9b9b;
+            --dark-gray: #6b6b6b;
+            --black: #2c2c2c;
+            --light-green: #86b97f;
+            --light-orange: #ff9f54;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--cream);
+            color: var(--black);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        /* Layout Grid */
+        .terminal-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: 70px 1fr 80px;
+            height: 100vh;
+            gap: 1px;
+            background: var(--gray);
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--light-green), #7ab373);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(134, 185, 127, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--light-gray);
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--light-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .agent-info {
+            text-align: center;
+        }
+
+        .agent-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .agent-role {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-btn {
+            padding: 0.5rem 1rem;
+            background: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .header-btn:hover {
+            background: var(--light-gray);
+            transform: translateY(-1px);
+        }
+
+        .header-btn.danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* Sidebar - Queue Selection */
+        .sidebar {
+            background: var(--white);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--medium-gray);
+            margin-bottom: 1rem;
+        }
+
+        .queue-selector {
+            background: var(--light-gray);
+            border: 1px solid var(--gray);
+            border-radius: 12px;
+            padding: 0.75rem;
+            width: 100%;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .queue-selector:focus {
+            outline: none;
+            border-color: var(--light-green);
+            box-shadow: 0 0 0 3px rgba(134, 185, 127, 0.1);
+        }
+
+        .priority-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.6rem;
+            background: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: var(--light-green);
+            color: white;
+            border-color: var(--light-green);
+        }
+
+        /* Queue List */
+        .queue-list {
+            margin-top: 1.5rem;
+        }
+
+        .queue-item {
+            background: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .queue-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+            border-color: var(--light-green);
+        }
+
+        .queue-item.priority {
+            border-left: 4px solid var(--light-orange);
+        }
+
+        .queue-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 0.25rem;
+        }
+
+        .queue-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            background: var(--cream);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .current-ticket {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .current-ticket::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--light-green), var(--light-orange));
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .ticket-number-large {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--black);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .ticket-service {
+            text-align: right;
+        }
+
+        .service-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .service-type {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+        }
+
+        .ticket-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .customer-info {
+            background: var(--cream);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .customer-details {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .customer-field {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .customer-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--medium-gray);
+        }
+
+        .customer-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .customer-label {
+            font-size: 0.75rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .customer-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: auto;
+        }
+
+        .action-btn {
+            background: var(--white);
+            border: 2px solid var(--gray);
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .action-btn.primary {
+            background: var(--light-green);
+            border-color: var(--light-green);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #7ab373;
+            border-color: #7ab373;
+        }
+
+        .action-btn.warning {
+            border-color: var(--light-orange);
+            color: var(--light-orange);
+        }
+
+        .action-btn.warning:hover {
+            background: var(--light-orange);
+            color: white;
+        }
+
+        .action-btn.danger {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .action-btn.danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn-icon {
+            font-size: 1.5rem;
+        }
+
+        .action-btn-text {
+            font-size: 0.9rem;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray);
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--medium-gray);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .panel-tab.active {
+            color: var(--black);
+        }
+
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--light-green);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--light-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--black);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        /* Stats */
+        .stat-card {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: var(--light-green);
+        }
+
+        /* Messenger */
+        .message-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .message-item:hover {
+            background: var(--gray);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-from {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        .message-preview {
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-badge {
+            display: inline-block;
+            background: var(--light-orange);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--medium-gray);
+        }
+
+        .footer-center {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .quick-action {
+            padding: 0.5rem 1.25rem;
+            background: var(--light-gray);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quick-action:hover {
+            background: var(--gray);
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--black);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Loading State */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--gray);
+            border-top-color: var(--light-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .terminal-container {
+                grid-template-columns: 240px 1fr 280px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">🎯</div>
+                    <div class="logo-text">FlowMatic Pro</div>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span>Counter 3 Active</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="agent-info">
+                    <div class="agent-name">Sarah Johnson</div>
+                    <div class="agent-role">Senior Agent • Level 5</div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn">
+                    <span>🔔</span>
+                    <span>Alerts (3)</span>
+                </button>
+                <button class="header-btn">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </button>
+                <button class="header-btn danger">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar - Queue Management -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="section-title">Queue Selection</h3>
+                <select class="queue-selector">
+                    <option>General Service</option>
+                    <option>Account Services</option>
+                    <option>VIP Services</option>
+                    <option>Technical Support</option>
+                </select>
+                
+                <div class="priority-toggle">
+                    <button class="toggle-btn active">Normal</button>
+                    <button class="toggle-btn">Priority</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">Queue List (12 Waiting)</h3>
+                <div class="queue-list">
+                    <div class="queue-item animate-in">
+                        <div class="queue-number">A045</div>
+                        <div class="queue-meta">
+                            <span>Wait: 15 min</span>
+                            <span>Normal</span>
+                        </div>
+                    </div>
+                    <div class="queue-item priority animate-in">
+                        <div class="queue-number">A046</div>
+                        <div class="queue-meta">
+                            <span>Wait: 18 min</span>
+                            <span>Priority</span>
+                        </div>
+                    </div>
+                    <div class="queue-item animate-in">
+                        <div class="queue-number">A047</div>
+                        <div class="queue-meta">
+                            <span>Wait: 22 min</span>
+                            <span>Normal</span>
+                        </div>
+                    </div>
+                    <div class="queue-item animate-in">
+                        <div class="queue-number">A048</div>
+                        <div class="queue-meta">
+                            <span>Wait: 25 min</span>
+                            <span>Normal</span>
+                        </div>
+                    </div>
+                    <div class="queue-item animate-in">
+                        <div class="queue-number">A049</div>
+                        <div class="queue-meta">
+                            <span>Wait: 28 min</span>
+                            <span>Normal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Current Ticket Display -->
+            <div class="current-ticket">
+                <div class="ticket-header">
+                    <div class="ticket-number-large">A044</div>
+                    <div class="ticket-service">
+                        <div class="service-name">General Service</div>
+                        <div class="service-type">Standard Processing</div>
+                    </div>
+                </div>
+
+                <div class="ticket-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Wait Time</div>
+                        <div class="detail-value">12:45</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Service Time</div>
+                        <div class="detail-value">05:23</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Queue Position</div>
+                        <div class="detail-value">#1</div>
+                    </div>
+                </div>
+
+                <div class="customer-info">
+                    <div class="customer-details">
+                        <div class="customer-field">
+                            <div class="customer-icon">👤</div>
+                            <div class="customer-text">
+                                <span class="customer-label">Name</span>
+                                <span class="customer-value">John Smith</span>
+                            </div>
+                        </div>
+                        <div class="customer-field">
+                            <div class="customer-icon">📱</div>
+                            <div class="customer-text">
+                                <span class="customer-label">Phone</span>
+                                <span class="customer-value">+1 234 567 8900</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="header-btn">View History</button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn primary">
+                    <span class="action-btn-icon">▶️</span>
+                    <span class="action-btn-text">NEXT</span>
+                </button>
+                <button class="action-btn warning">
+                    <span class="action-btn-icon">🔄</span>
+                    <span class="action-btn-text">RECALL</span>
+                </button>
+                <button class="action-btn">
+                    <span class="action-btn-icon">✅</span>
+                    <span class="action-btn-text">END</span>
+                </button>
+                <button class="action-btn danger">
+                    <span class="action-btn-icon">❌</span>
+                    <span class="action-btn-text">NO SHOW</span>
+                </button>
+                <button class="action-btn">
+                    <span class="action-btn-icon">♻️</span>
+                    <span class="action-btn-text">RECYCLE</span>
+                </button>
+                <button class="action-btn">
+                    <span class="action-btn-icon">🅿️</span>
+                    <span class="action-btn-text">PARK</span>
+                </button>
+                <button class="action-btn">
+                    <span class="action-btn-icon">↔️</span>
+                    <span class="action-btn-text">TRANSFER</span>
+                </button>
+                <button class="action-btn">
+                    <span class="action-btn-icon">🔒</span>
+                    <span class="action-btn-text">OPEN/CLOSE</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Right Panel - Activity/Stats/Messages -->
+        <aside class="right-panel">
+            <div class="panel-tabs">
+                <button class="panel-tab active">Activity</button>
+                <button class="panel-tab">Stats</button>
+                <button class="panel-tab">Messages <span class="message-badge">2</span></button>
+            </div>
+
+            <div class="panel-content">
+                <!-- Activity Feed -->
+                <div id="activityPanel">
+                    <div class="activity-item">
+                        <div class="activity-icon">✅</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Completed A043</div>
+                            <div class="activity-time">2 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">📞</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Called A044</div>
+                            <div class="activity-time">7 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">🔄</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Recalled A042</div>
+                            <div class="activity-time">15 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">❌</div>
+                        <div class="activity-content">
+                            <div class="activity-title">No Show A041</div>
+                            <div class="activity-time">22 minutes ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Panel (Hidden by default) -->
+                <div id="statsPanel" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Tickets Served</span>
+                            <span class="stat-change">+12%</span>
+                        </div>
+                        <div class="stat-value">47</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Avg Service Time</span>
+                            <span class="stat-change">-8%</span>
+                        </div>
+                        <div class="stat-value">4:32</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Customer Rating</span>
+                            <span class="stat-change">+2%</span>
+                        </div>
+                        <div class="stat-value">4.8/5</div>
+                    </div>
+                </div>
+
+                <!-- Messages Panel (Hidden by default) -->
+                <div id="messagesPanel" style="display: none;">
+                    <div class="message-item">
+                        <div class="message-header">
+                            <span class="message-from">System Alert</span>
+                            <span class="message-time">10:45 AM</span>
+                        </div>
+                        <div class="message-preview">VIP customer in queue - A046</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-header">
+                            <span class="message-from">Manager</span>
+                            <span class="message-time">10:30 AM</span>
+                        </div>
+                        <div class="message-preview">Please prioritize account services today</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-left">
+                <div class="connection-status">
+                    <div class="status-dot"></div>
+                    <span>Connected • Real-time sync active</span>
+                </div>
+            </div>
+
+            <div class="footer-center">
+                <button class="quick-action">Break</button>
+                <button class="quick-action">Help</button>
+                <button class="quick-action">Supervisor</button>
+            </div>
+
+            <div class="footer-right">
+                <span style="color: var(--medium-gray); font-size: 0.85rem;">Session Time:</span>
+                <div class="timer">02:34:56</div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.panel-tab').forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Hide all panels
+                document.getElementById('activityPanel').style.display = 'none';
+                document.getElementById('statsPanel').style.display = 'none';
+                document.getElementById('messagesPanel').style.display = 'none';
+                
+                // Show selected panel
+                if (index === 0) document.getElementById('activityPanel').style.display = 'block';
+                if (index === 1) document.getElementById('statsPanel').style.display = 'block';
+                if (index === 2) document.getElementById('messagesPanel').style.display = 'block';
+            });
+        });
+
+        // Action button clicks
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Add loading state
+                this.classList.add('loading');
+                
+                // Simulate action
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                    
+                    // Get button text
+                    const action = this.querySelector('.action-btn-text').textContent;
+                    console.log(`Action: ${action}`);
+                    
+                    // Add to activity feed
+                    const activityPanel = document.getElementById('activityPanel');
+                    const newActivity = document.createElement('div');
+                    newActivity.className = 'activity-item animate-in';
+                    newActivity.innerHTML = `
+                        <div class="activity-icon">🎯</div>
+                        <div class="activity-content">
+                            <div class="activity-title">${action} - A044</div>
+                            <div class="activity-time">Just now</div>
+                        </div>
+                    `;
+                    activityPanel.insertBefore(newActivity, activityPanel.firstChild);
+                }, 500);
+            });
+        });
+
+        // Timer
+        let seconds = 0;
+        setInterval(() => {
+            seconds++;
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            document.querySelector('.timer').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }, 1000);
+
+        // Queue item clicks
+        document.querySelectorAll('.queue-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const queueNumber = this.querySelector('.queue-number').textContent;
+                console.log(`Selected queue item: ${queueNumber}`);
+            });
+        });
+    </script>
+</body>
+</html>

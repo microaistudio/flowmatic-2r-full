@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Kiosk - Futuristic Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00d4ff;
+            --neon-purple: #b794f4;
+            --neon-orange: #ff6b6b;
+            --dark-bg: #0a0e27;
+            --dark-surface: #151932;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            color: var(--text-primary);
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(183, 148, 244, 0.1) 0%, transparent 50%);
+            animation: bgPulse 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            padding: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 1.5rem;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glassmorphism panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            padding: 1.5rem 2.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-symbol {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--neon-green) 0%, var(--neon-blue) 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: var(--dark-bg);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.5),
+                inset 0 0 20px rgba(0, 212, 255, 0.3);
+            animation: logoGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), inset 0 0 20px rgba(0, 212, 255, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.8), inset 0 0 30px rgba(0, 212, 255, 0.5); }
+        }
+
+        .logo-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.3px;
+        }
+
+        .status-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.75rem 1.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8); }
+        }
+
+        .lang-controls {
+            display: flex;
+            background: var(--glass-bg);
+            border-radius: 14px;
+            padding: 4px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .lang-button {
+            padding: 0.7rem 1.2rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lang-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lang-button.active {
+            color: var(--dark-bg);
+        }
+
+        .lang-button.active::before {
+            opacity: 1;
+        }
+
+        .lang-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .services-dashboard {
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .services-dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .service-dashboard-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 1.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .service-dashboard-card:hover {
+            transform: translateY(-4px);
+            border-color: currentColor;
+        }
+
+        .service-dashboard-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-dashboard-card.general {
+            border-color: var(--neon-green);
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .service-dashboard-card.general:hover {
+            box-shadow: 0 8px 40px rgba(0, 255, 136, 0.4);
+        }
+
+        .service-dashboard-card.account {
+            border-color: var(--neon-orange);
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.2);
+        }
+
+        .service-dashboard-card.account:hover {
+            box-shadow: 0 8px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .service-dashboard-card.vip {
+            border-color: var(--neon-purple);
+            box-shadow: 0 4px 20px rgba(183, 148, 244, 0.2);
+        }
+
+        .service-dashboard-card.vip:hover {
+            box-shadow: 0 8px 40px rgba(183, 148, 244, 0.4);
+        }
+
+        .service-dashboard-card.technical {
+            border-color: var(--neon-blue);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .service-dashboard-card.technical:hover {
+            box-shadow: 0 8px 40px rgba(0, 212, 255, 0.4);
+        }
+
+        .service-icon-box {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: var(--dark-bg);
+        }
+
+        .service-dashboard-card.general .service-icon-box {
+            background: linear-gradient(135deg, var(--neon-green), #00cc6a);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .service-dashboard-card.account .service-icon-box {
+            background: linear-gradient(135deg, var(--neon-orange), #ff5252);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+
+        .service-dashboard-card.vip .service-icon-box {
+            background: linear-gradient(135deg, var(--neon-purple), #9f7aea);
+            box-shadow: 0 0 20px rgba(183, 148, 244, 0.5);
+        }
+
+        .service-dashboard-card.technical .service-icon-box {
+            background: linear-gradient(135deg, var(--neon-blue), #00a8cc);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .wait-metric {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .wait-metric-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--dark-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(0, 255, 136, 0.1);
+            animation: modalIn 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+            animation: modalGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes modalGlow {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--dark-bg);
+            margin: 0 auto 1.5rem;
+            box-shadow: 
+                0 0 40px rgba(0, 255, 136, 0.5),
+                inset 0 0 20px rgba(0, 212, 255, 0.3);
+            animation: successPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(0, 255, 136, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(0, 255, 136, 0.8); }
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-display {
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ticket-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Delivery Options */
+        .delivery-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .delivery-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .delivery-btn:hover {
+            transform: translateY(-4px);
+            border-color: var(--neon-green);
+            box-shadow: 0 8px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .delivery-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .delivery-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Digital Options Panel */
+        .digital-panel {
+            display: none;
+            animation: slideIn 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .digital-panel.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .digital-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .method-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .method-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .method-icon {
+            font-size: 1.8rem;
+        }
+
+        .method-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Action Buttons */
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            color: var(--dark-bg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 255, 136, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--neon-green);
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+            padding: 0.8rem 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-back:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        /* Loading Animation */
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--neon-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Quick Stats */
+        .quick-stat {
+            background: var(--glass-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .quick-stat-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Info Panel */
+        .info-widget {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .assistance-widget {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 159, 84, 0.1));
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+
+        /* Footer */
+        .footer-bar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1rem 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header glass-panel">
+            <div class="logo-area">
+                <div class="logo-symbol">🚀</div>
+                <div class="logo-title">FlowMatic</div>
+            </div>
+            
+            <div class="status-center">
+                <div class="system-status">
+                    <div class="status-indicator"></div>
+                    <span class="status-label">System Online</span>
+                </div>
+                <div class="time-zone">Quantum Queue Management System</div>
+            </div>
+            
+            <div class="lang-controls">
+                <button class="lang-button active" data-lang="en"><span>EN</span></button>
+                <button class="lang-button" data-lang="th"><span>TH</span></button>
+                <button class="lang-button" data-lang="hi"><span>HI</span></button>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="main-dashboard">
+            <!-- Services Dashboard -->
+            <div class="services-dashboard glass-panel">
+                <div class="dashboard-header">
+                    <div>
+                        <h1 class="dashboard-title">Service Portal</h1>
+                        <p class="dashboard-subtitle">Select your quantum service to join the queue</p>
+                    </div>
+                    <div class="quick-stats" id="quickStats">
+                        <!-- Quick stats will be loaded dynamically -->
+                    </div>
+                </div>
+                
+                <div class="services-dashboard-grid" id="servicesDashboardGrid">
+                    <!-- Services will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Information Panel -->
+            <div class="info-panel">
+                <!-- System Overview -->
+                <div class="info-widget">
+                    <h3 class="widget-title">
+                        <span class="widget-icon">📊</span>
+                        System Metrics
+                    </h3>
+                    <div class="overview-metrics" id="overviewMetrics">
+                        <!-- Metrics will be loaded dynamically -->
+                    </div>
+                    <div class="performance-indicator">
+                        <div class="performance-label">Quantum Efficiency</div>
+                        <div class="performance-bar">
+                            <div class="performance-fill" style="width: 94%; background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));"></div>
+                        </div>
+                        <div class="performance-text">94% Operational Efficiency</div>
+                    </div>
+                </div>
+
+                <!-- Time Widget -->
+                <div class="info-widget time-widget">
+                    <h3 class="widget-title">
+                        <span class="widget-icon">⏱️</span>
+                        Time Matrix
+                    </h3>
+                    <div class="time-main" id="currentTime">00:00 AM</div>
+                    <div class="date-main" id="currentDate">Loading...</div>
+                </div>
+
+                <!-- Assistance Widget -->
+                <div class="info-widget assistance-widget">
+                    <div class="assistance-icon">🤖</div>
+                    <div class="assistance-title">AI Support</div>
+                    <div class="assistance-desc">Our quantum AI assistant is ready to help with any questions or accessibility needs.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-bar glass-panel">
+            <div class="footer-content">
+                <span>⚡ Quantum Processing Active</span>
+                <div class="footer-separator"></div>
+                <span>🔮 Predictive Queue Analytics</span>
+                <div class="footer-separator"></div>
+                <span>🌐 Neural Network Connected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Ticket Modal -->
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="success-icon">✓</div>
+                <div class="modal-title">Quantum Ticket Generated!</div>
+            </div>
+
+            <!-- Initial Ticket Display -->
+            <div class="ticket-display" id="ticketDisplay">
+                <div class="ticket-number" id="ticketNumber">A001</div>
+                <div class="ticket-info" id="ticketInfo">
+                    <div>Service: <strong>General Service</strong></div>
+                    <div>Estimated Wait: <strong>15 minutes</strong></div>
+                    <div>Position in Queue: <strong>5</strong></div>
+                </div>
+            </div>
+
+            <!-- Delivery Options -->
+            <div class="delivery-options" id="deliveryOptions">
+                <div class="delivery-btn" onclick="selectDelivery('print')">
+                    <span class="delivery-icon">🖨️</span>
+                    <span class="delivery-label">Print</span>
+                </div>
+                <div class="delivery-btn" onclick="selectDelivery('digital')">
+                    <span class="delivery-icon">📱</span>
+                    <span class="delivery-label">Digital</span>
+                </div>
+                <div class="delivery-btn" onclick="closeModal()">
+                    <span class="delivery-icon">❌</span>
+                    <span class="delivery-label">Close</span>
+                </div>
+            </div>
+
+            <!-- Digital Options Panel -->
+            <div class="digital-panel" id="digitalPanel">
+                <button class="btn btn-back" onclick="backToDeliveryOptions()">← Back</button>
+                
+                <form id="digitalForm">
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-input" id="customerName" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-input" id="customerPhone" placeholder="+1 234 567 8900">
+                    </div>
+                </form>
+
+                <div class="digital-methods">
+                    <div class="method-btn" onclick="sendDigitalTicket('sms')">
+                        <span class="method-icon">💬</span>
+                        <span class="method-label">SMS</span>
+                    </div>
+                    <div class="method-btn" onclick="sendDigitalTicket('email')">
+                        <span class="method-icon">📧</span>
+                        <span class="method-label">Email</span>
+                    </div>
+                    <div class="method-btn" onclick="sendDigitalTicket('qr')">
+                        <span class="method-icon">📲</span>
+                        <span class="method-label">QR Code</span>
+                    </div>
+                    <div class="method-btn" onclick="sendDigitalTicket('print')">
+                        <span class="method-icon">🖨️</span>
+                        <span class="method-label">Print</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class KioskApp {
+            constructor() {
+                this.socket = null;
+                this.services = [];
+                this.currentLanguage = 'en';
+                this.apiBase = '';
+                this.currentTicket = null;
+                
+                this.init();
+            }
+
+            async init() {
+                try {
+                    this.initSocket();
+                    await this.loadServices();
+                    this.setupEventListeners();
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                } catch (error) {
+                    console.error('Failed to initialize kiosk:', error);
+                    this.showError('System initialization failed. Please contact support.');
+                }
+            }
+
+            initSocket() {
+                this.socket = io();
+                
+                this.socket.on('connect', () => {
+                    console.log('Connected to quantum server');
+                    this.socket.emit('join-all');
+                });
+
+                this.socket.on('ticket-created', (data) => {
+                    this.loadServices();
+                });
+
+                this.socket.on('queue-updated', (data) => {
+                    this.updateServiceQueue(data);
+                });
+            }
+
+            async loadServices() {
+                try {
+                    const response = await fetch('/api/kiosk/services');
+                    if (!response.ok) throw new Error('Failed to load services');
+                    
+                    const data = await response.json();
+                    this.services = data.services || [];
+                    
+                    this.renderServices();
+                    this.updateQuickStats();
+                    this.updateOverviewMetrics();
+                } catch (error) {
+                    console.error('Error loading services:', error);
+                }
+            }
+
+            renderServices() {
+                const grid = document.getElementById('servicesDashboardGrid');
+                const serviceClasses = ['general', 'account', 'vip', 'technical'];
+                const serviceIcons = ['🌐', '💼', '👑', '🔧'];
+                const serviceTiers = ['Standard', 'Business', 'Premium', 'Technical'];
+                
+                grid.innerHTML = this.services.map((service, index) => {
+                    const rwt = Math.round((service.realWaitTime || service.estimatedServiceTime || 300) / 60);
+                    const ewt = Math.round((service.estimatedWaitTime || service.estimatedServiceTime || 300) / 60);
+                    const queueCount = service.queueCount || 0;
+                    const nowServing = service.currentServing || 'None';
+                    
+                    return `
+                        <div class="service-dashboard-card ${serviceClasses[index] || 'general'}" 
+                             data-service-id="${service.id}"
+                             onclick="app.selectService(${service.id})">
+                            <div class="service-card-header">
+                                <div class="service-meta">
+                                    <div class="service-icon-box">${serviceIcons[index] || '🌐'}</div>
+                                    <div class="service-text">
+                                        <div class="service-card-title">${service.name}</div>
+                                        <div class="service-card-desc">${service.description || 'Quantum service'}</div>
+                                    </div>
+                                </div>
+                                <div class="priority-badge">${serviceTiers[index] || 'Standard'}</div>
+                            </div>
+                            
+                            <div class="wait-time-dashboard">
+                                <div class="wait-metric">
+                                    <div class="wait-metric-label">Real Wait</div>
+                                    <div class="wait-metric-value">${rwt} min</div>
+                                </div>
+                                <div class="wait-metric">
+                                    <div class="wait-metric-label">Est. Wait</div>
+                                    <div class="wait-metric-value">${ewt} min</div>
+                                </div>
+                            </div>
+                            
+                            <div class="queue-summary">
+                                <span class="now-serving">Now serving: ${nowServing}</span>
+                                <span class="queue-length">${queueCount} in queue</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            updateQuickStats() {
+                const statsContainer = document.getElementById('quickStats');
+                if (!this.services.length) return;
+
+                const totalWaiting = this.services.reduce((sum, service) => sum + (service.queueCount || 0), 0);
+                const totalServing = this.services.reduce((sum, service) => sum + (service.servingCount || 0), 0);
+                const avgWait = Math.round(this.services.reduce((sum, service) => sum + (service.realWaitTime || 300), 0) / this.services.length / 60);
+
+                statsContainer.innerHTML = `
+                    <div class="quick-stat">
+                        <div class="quick-stat-number">${totalWaiting}</div>
+                        <div class="quick-stat-label">Waiting</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-number">${totalServing}</div>
+                        <div class="quick-stat-label">Active</div>
+                    </div>
+                    <div class="quick-stat">
+                        <div class="quick-stat-number">${avgWait}</div>
+                        <div class="quick-stat-label">Avg Min</div>
+                    </div>
+                `;
+            }
+
+            updateOverviewMetrics() {
+                const metricsContainer = document.getElementById('overviewMetrics');
+                const totalServing = this.services.reduce((sum, service) => sum + (service.servingCount || 0), 0);
+
+                metricsContainer.innerHTML = `
+                    <div class="metric-block">
+                        <div class="metric-primary">4.9</div>
+                        <div class="metric-secondary">Satisfaction</div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-primary">99%</div>
+                        <div class="metric-secondary">Uptime</div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-primary">${totalServing}</div>
+                        <div class="metric-secondary">Active</div>
+                    </div>
+                    <div class="metric-block">
+                        <div class="metric-primary">⚡</div>
+                        <div class="metric-secondary">Quantum</div>
+                    </div>
+                `;
+            }
+
+            async selectService(serviceId) {
+                try {
+                    const service = this.services.find(s => s.id === serviceId);
+                    if (!service) throw new Error('Service not found');
+
+                    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    card.classList.add('loading');
+
+                    const response = await fetch('/api/kiosk/tickets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            serviceId: serviceId,
+                            priority: 0
+                        })
+                    });
+
+                    const responseData = await response.json();
+                    
+                    if (responseData.success && responseData.ticket) {
+                        this.currentTicket = responseData.ticket;
+                        this.showTicketModal(responseData.ticket, service);
+                        await this.loadServices();
+                    }
+
+                } catch (error) {
+                    console.error('Error selecting service:', error);
+                } finally {
+                    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    if (card) card.classList.remove('loading');
+                }
+            }
+
+            showTicketModal(ticket, service) {
+                const ticketNumber = ticket.ticketNumber || ticket.number || 'Unknown';
+                const estimatedWait = ticket.estimatedWait || 900;
+                const queuePosition = ticket.queuePosition || ticket.position;
+                
+                document.getElementById('ticketNumber').textContent = ticketNumber;
+                
+                const waitMinutes = Math.round(estimatedWait / 60);
+                const position = queuePosition || this.services.find(s => s.id === service.id)?.queueCount || 'N/A';
+                
+                document.getElementById('ticketInfo').innerHTML = `
+                    <div>Service: <strong>${service.name}</strong></div>
+                    <div>Estimated Wait: <strong>${waitMinutes} minutes</strong></div>
+                    <div>Position in Queue: <strong>${position}</strong></div>
+                    <div>Created: <strong>${new Date(ticket.createdAt || Date.now()).toLocaleTimeString()}</strong></div>
+                `;
+
+                // Reset to initial state
+                document.getElementById('deliveryOptions').style.display = 'grid';
+                document.getElementById('digitalPanel').classList.remove('active');
+                
+                document.getElementById('ticketModal').classList.add('active');
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.lang-button').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.lang-button').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentLanguage = btn.dataset.lang;
+                    });
+                });
+
+                document.getElementById('ticketModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'ticketModal') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                const dateString = now.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                document.getElementById('currentTime').textContent = timeString;
+                document.getElementById('currentDate').textContent = dateString;
+            }
+
+            updateServiceQueue(data) {
+                const service = this.services.find(s => s.id === data.serviceId);
+                if (service) {
+                    service.queueCount = data.waiting || 0;
+                    service.servingCount = data.serving || 0;
+                    
+                    const card = document.querySelector(`[data-service-id="${data.serviceId}"]`);
+                    if (card) {
+                        const queueLength = card.querySelector('.queue-length');
+                        if (queueLength) {
+                            queueLength.textContent = `${data.waiting || 0} in queue`;
+                        }
+                    }
+                    
+                    this.updateQuickStats();
+                    this.updateOverviewMetrics();
+                }
+            }
+
+            closeModal() {
+                document.getElementById('ticketModal').classList.remove('active');
+            }
+        }
+
+        // Global functions
+        function closeModal() { app.closeModal(); }
+
+        function selectDelivery(type) {
+            if (type === 'print') {
+                window.print();
+                setTimeout(() => app.closeModal(), 100);
+            } else if (type === 'digital') {
+                document.getElementById('deliveryOptions').style.display = 'none';
+                document.getElementById('digitalPanel').classList.add('active');
+            }
+        }
+
+        function backToDeliveryOptions() {
+            document.getElementById('digitalPanel').classList.remove('active');
+            document.getElementById('deliveryOptions').style.display = 'grid';
+        }
+
+        function sendDigitalTicket(method) {
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            
+            if (!name || !phone) {
+                alert('Please enter your name and phone number');
+                return;
+            }
+            
+            // Frontend only - show success message
+            console.log(`Sending ticket via ${method} to ${name} (${phone})`);
+            
+            if (method === 'print') {
+                window.print();
+            } else if (method === 'qr') {
+                alert('QR Code generated! (Frontend demo only)');
+            } else if (method === 'sms') {
+                alert(`SMS sent to ${phone}! (Frontend demo only)`);
+            } else if (method === 'email') {
+                alert(`Email ticket sent! (Frontend demo only)`);
+            }
+            
+            setTimeout(() => app.closeModal(), 1500);
+        }
+
+        // Initialize app
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new KioskApp();
+        });
+    </script>
+</body>
+</html>

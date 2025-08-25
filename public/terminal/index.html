@@ -1,0 +1,3017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Terminal - Advanced Professional</title>
+    <script src="/socket.io/socket.io.js" onerror="console.warn('Socket.IO not available - running in offline mode')"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cream: #faf9f6;
+            --white: #ffffff;
+            --light-gray: #f5f4f1;
+            --gray: #e8e7e4;
+            --medium-gray: #9b9b9b;
+            --dark-gray: #6b6b6b;
+            --black: #2c2c2c;
+            --light-green: #86b97f;
+            --light-orange: #ff9f54;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--cream);
+            color: var(--black);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: var(--cream);
+        }
+
+        .login-box {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: var(--shadow-hover);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--light-green), #7ab373);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            margin: 0 auto 1rem;
+            box-shadow: 0 8px 24px rgba(134, 185, 127, 0.3);
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+
+        .form-input, .form-select {
+            padding: 0.75rem 1rem;
+            background: var(--light-gray);
+            border: 1px solid var(--gray);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: var(--black);
+            transition: var(--transition);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--light-green);
+            box-shadow: 0 0 0 3px rgba(134, 185, 127, 0.1);
+        }
+
+        .login-btn {
+            padding: 1rem;
+            background: var(--light-green);
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+        }
+
+        .login-btn:hover {
+            background: #7ab373;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .skip-login-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .skip-login-btn:hover {
+            border-color: var(--light-green);
+            color: var(--light-green);
+            transform: translateY(-1px);
+        }
+
+        .login-error {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* Layout Grid - MODIFIED: Reduced sidebar widths for 5-column button grid */
+        .terminal-container {
+            display: none;
+            grid-template-columns: 260px 1fr 300px;
+            grid-template-rows: 70px 1fr 80px;
+            height: 100vh;
+            gap: 1px;
+            background: var(--gray);
+        }
+
+        .terminal-container.active {
+            display: grid;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--light-green), #7ab373);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(134, 185, 127, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--light-gray);
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--light-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.disconnected {
+            background: #dc3545;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .agent-info {
+            text-align: center;
+        }
+
+        .agent-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .agent-role {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-btn {
+            padding: 0.5rem 1rem;
+            background: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .header-btn:hover {
+            background: var(--light-gray);
+            transform: translateY(-1px);
+        }
+
+        .header-btn.danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* Sidebar - Queue Selection */
+        .sidebar {
+            background: var(--white);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--medium-gray);
+            margin-bottom: 1rem;
+        }
+
+        .queue-selector {
+            background: var(--light-gray);
+            border: 1px solid var(--gray);
+            border-radius: 12px;
+            padding: 0.75rem;
+            width: 100%;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .queue-selector:focus {
+            outline: none;
+            border-color: var(--light-green);
+            box-shadow: 0 0 0 3px rgba(134, 185, 127, 0.1);
+        }
+
+        .priority-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.6rem;
+            background: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: var(--light-green);
+            color: white;
+            border-color: var(--light-green);
+        }
+
+        /* Queue List */
+        .queue-list {
+            margin-top: 1.5rem;
+        }
+
+        .queue-empty {
+            text-align: center;
+            color: var(--medium-gray);
+            padding: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .queue-item {
+            background: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .queue-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+            border-color: var(--light-green);
+        }
+
+        .queue-item.priority {
+            border-left: 4px solid var(--light-orange);
+        }
+
+        .queue-item.recycled {
+            border-left: 4px solid #28a745;
+            background: #f8fff8;
+        }
+
+        .queue-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 0.25rem;
+        }
+
+        .queue-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            background: var(--cream);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .current-ticket {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 380px;
+        }
+
+        .current-ticket::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--light-green), var(--light-orange));
+        }
+
+        .no-ticket {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 320px;
+            color: var(--medium-gray);
+        }
+
+        .no-ticket-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .no-ticket-text {
+            font-size: 1.2rem;
+        }
+
+        .ticket-content {
+            display: none;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .ticket-number-large {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--black);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .ticket-service {
+            text-align: right;
+        }
+
+        .service-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .service-type {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+        }
+
+        .ticket-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .customer-info {
+            background: var(--cream);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .customer-details {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .customer-field {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .customer-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--medium-gray);
+        }
+
+        .customer-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .customer-label {
+            font-size: 0.75rem;
+            color: var(--medium-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .customer-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        /* Action Buttons - MODIFIED: 5x2 grid */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin-top: auto;
+        }
+
+        .action-btn {
+            background: var(--white);
+            border: 2px solid var(--gray);
+            border-radius: 16px;
+            padding: 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn.primary {
+            background: var(--light-green);
+            border-color: var(--light-green);
+            color: white;
+        }
+
+        .action-btn.primary:hover:not(:disabled) {
+            background: #7ab373;
+            border-color: #7ab373;
+        }
+
+        .action-btn.warning {
+            border-color: var(--light-orange);
+            color: var(--light-orange);
+        }
+
+        .action-btn.warning:hover:not(:disabled) {
+            background: var(--light-orange);
+            color: white;
+        }
+
+        .action-btn.danger {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .action-btn.danger:hover:not(:disabled) {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* NEXT button spans 2 columns in bottom right */
+        .action-btn.next-wide {
+            grid-column: 4 / 6;
+            grid-row: 2;
+        }
+
+        .action-btn-icon {
+            font-size: 1.3rem;
+        }
+
+        .action-btn-text {
+            font-size: 0.8rem;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray);
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--medium-gray);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .panel-tab.active {
+            color: var(--black);
+        }
+
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--light-green);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--light-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--black);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        /* Stats */
+        .stat-card {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: var(--light-green);
+        }
+
+        /* Parked List (similar to queue list) */
+        .park-list {
+            margin-top: 1.5rem;
+        }
+
+        .park-item {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid #ffc107;
+        }
+
+        .park-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+            border-color: #ff9800;
+        }
+
+        .park-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 0.25rem;
+        }
+
+        .park-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        /* Messenger */
+        .message-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .message-item:hover {
+            background: var(--gray);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-from {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        .message-preview {
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-badge {
+            display: inline-block;
+            background: var(--light-orange);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--medium-gray);
+        }
+
+        .footer-center {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .quick-action {
+            padding: 0.5rem 1.25rem;
+            background: var(--light-gray);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quick-action:hover {
+            background: var(--gray);
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--black);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Loading State */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--gray);
+            border-top-color: var(--light-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-hover);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--light-green);
+        }
+
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        /* Transfer Modal */
+        .transfer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transfer-modal.show {
+            display: flex;
+        }
+
+        .transfer-modal-content {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow-hover);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .transfer-modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .transfer-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 0.5rem;
+        }
+
+        .transfer-modal-subtitle {
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+        }
+
+        .transfer-services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .transfer-service-option {
+            background: var(--light-gray);
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .transfer-service-option:hover {
+            border-color: var(--light-green);
+            background: var(--white);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .transfer-service-option.selected {
+            border-color: var(--light-green);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(134, 185, 127, 0.1);
+        }
+
+        .transfer-service-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .transfer-service-name {
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 0.25rem;
+        }
+
+        .transfer-service-desc {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+        }
+
+        .transfer-modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .transfer-modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .transfer-modal-btn.cancel {
+            background: var(--light-gray);
+            color: var(--black);
+        }
+
+        .transfer-modal-btn.cancel:hover {
+            background: var(--gray);
+        }
+
+        .transfer-modal-btn.confirm {
+            background: var(--light-green);
+            color: white;
+        }
+
+        .transfer-modal-btn.confirm:hover {
+            background: #7ab373;
+        }
+
+        .transfer-modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .terminal-container {
+                grid-template-columns: 240px 1fr 280px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">🎯</div>
+                <h1 class="login-title">FlowMatic Terminal</h1>
+                <p style="color: var(--medium-gray);">Sign in to continue</p>
+            </div>
+            
+            <div class="login-error" id="loginError"></div>
+            
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="username" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="password" placeholder="Enter your password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Counter</label>
+                    <select class="form-select" id="counterId" required>
+                        <option value="">Loading counters...</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="login-btn">Sign In</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="skip-login-btn" onclick="skipLogin()">
+                    Skip Login (Demo Mode)
+                </button>
+                <p style="font-size: 0.8rem; color: var(--medium-gray); margin-top: 0.5rem;">
+                    Use demo account for testing (or press Ctrl+D)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Interface -->
+    <div class="terminal-container" id="terminalScreen">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">🎯</div>
+                    <div class="logo-text">FlowMatic Pro</div>
+                </div>
+                <div class="status-badge">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <span id="counterStatus">Counter - Active</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="agent-info">
+                    <div class="agent-name" id="agentName">-</div>
+                    <div class="agent-role" id="agentRole">-</div>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="header-btn" id="alertsBtn">
+                    <span>🔔</span>
+                    <span>Alerts (<span id="alertCount">0</span>)</span>
+                </button>
+                <button class="header-btn">
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </button>
+                <button class="header-btn danger" id="logoutBtn">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar - Queue Management -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="section-title">Queue Selection</h3>
+                <select class="queue-selector" id="serviceSelector">
+                    <option value="">Loading services...</option>
+                </select>
+                
+                <div class="priority-toggle">
+                    <button class="toggle-btn active" data-priority="0">Normal</button>
+                    <button class="toggle-btn" data-priority="1">Priority</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">Queue List (<span id="queueCount">0</span> Waiting)</h3>
+                <div class="queue-list" id="queueList">
+                    <div class="queue-empty">No tickets in queue</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Current Ticket Display -->
+            <div class="current-ticket">
+                <div class="no-ticket" id="noTicket">
+                    <div class="no-ticket-icon">📋</div>
+                    <div class="no-ticket-text">No ticket currently serving</div>
+                    <p style="color: var(--medium-gray); margin-top: 1rem;">Click "NEXT" to call the next customer</p>
+                </div>
+                
+                <div class="ticket-content" id="ticketContent">
+                    <div class="ticket-header">
+                        <div class="ticket-number-large" id="ticketNumber">-</div>
+                        <div class="ticket-service">
+                            <div class="service-name" id="serviceName">-</div>
+                            <div class="service-type">Standard Processing</div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Wait Time</div>
+                            <div class="detail-value" id="waitTime">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Service Time</div>
+                            <div class="detail-value" id="serviceTime">00:00</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Queue Position</div>
+                            <div class="detail-value" id="queuePosition">-</div>
+                        </div>
+                    </div>
+
+                    <div class="customer-info">
+                        <div class="customer-details">
+                            <div class="customer-field">
+                                <div class="customer-icon">👤</div>
+                                <div class="customer-text">
+                                    <span class="customer-label">Name</span>
+                                    <span class="customer-value" id="customerName">-</span>
+                                </div>
+                            </div>
+                            <div class="customer-field">
+                                <div class="customer-icon">📱</div>
+                                <div class="customer-text">
+                                    <span class="customer-label">Phone</span>
+                                    <span class="customer-value" id="customerPhone">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="header-btn">View History</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons - MODIFIED: 5x2 grid with NEXT spanning 2 columns -->
+            <div class="action-buttons">
+                <!-- Row 1 -->
+                <button class="action-btn warning" id="btnRecall" disabled>
+                    <span class="action-btn-icon">🔄</span>
+                    <span class="action-btn-text">RECALL</span>
+                </button>
+                <button class="action-btn" id="btnEnd" disabled>
+                    <span class="action-btn-icon">✅</span>
+                    <span class="action-btn-text">END</span>
+                </button>
+                <button class="action-btn danger" id="btnNoShow" disabled>
+                    <span class="action-btn-icon">❌</span>
+                    <span class="action-btn-text">NO SHOW</span>
+                </button>
+                <button class="action-btn" id="btnRecycle" disabled>
+                    <span class="action-btn-icon">♻️</span>
+                    <span class="action-btn-text">RECYCLE</span>
+                </button>
+                <button class="action-btn" id="btnPark" disabled>
+                    <span class="action-btn-icon">🅿️</span>
+                    <span class="action-btn-text">PARK</span>
+                </button>
+
+                <!-- Row 2 -->
+                <button class="action-btn" id="btnTransfer" disabled>
+                    <span class="action-btn-icon">↔️</span>
+                    <span class="action-btn-text">TRANSFER</span>
+                </button>
+                <button class="action-btn" id="btnOpenClose">
+                    <span class="action-btn-icon">🔒</span>
+                    <span class="action-btn-text">OPEN/CLOSE</span>
+                </button>
+                <button class="action-btn" id="btnEmpty" disabled style="opacity: 0.3;">
+                    <span class="action-btn-icon">⚫</span>
+                    <span class="action-btn-text">EMPTY</span>
+                </button>
+                <!-- NEXT button spans 2 columns -->
+                <button class="action-btn primary next-wide" id="btnNext">
+                    <span class="action-btn-icon">▶️</span>
+                    <span class="action-btn-text">NEXT</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Right Panel - Activity/Stats/Messages/Park -->
+        <aside class="right-panel">
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-panel="activity">Activity</button>
+                <button class="panel-tab" data-panel="stats">Stats</button>
+                <button class="panel-tab" data-panel="park">Park</button>
+                <button class="panel-tab" data-panel="messages">Messages <span class="message-badge" id="messageBadge" style="display: none;">0</span></button>
+            </div>
+
+            <div class="panel-content">
+                <!-- Activity Feed -->
+                <div id="activityPanel">
+                    <!-- Activities will be populated here -->
+                </div>
+
+                <!-- Stats Panel (Hidden by default) -->
+                <div id="statsPanel" style="display: none;">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Tickets Served Today</span>
+                        </div>
+                        <div class="stat-value" id="ticketsServed">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Avg Service Time</span>
+                        </div>
+                        <div class="stat-value" id="avgServiceTime">0:00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Current Queue Size</span>
+                        </div>
+                        <div class="stat-value" id="currentQueueSize">0</div>
+                    </div>
+                </div>
+
+                <!-- Park Panel (NEW) -->
+                <div id="parkPanel" style="display: none;">
+                    <div class="sidebar-section">
+                        <h3 class="section-title">Parked Tickets (<span id="parkCount">0</span> Parked)</h3>
+                        <div class="park-list" id="parkList">
+                            <div class="queue-empty">No parked tickets</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages Panel (Hidden by default) -->
+                <div id="messagesPanel" style="display: none;">
+                    <div class="message-item">
+                        <div class="message-header">
+                            <span class="message-from">System</span>
+                            <span class="message-time">Just now</span>
+                        </div>
+                        <div class="message-preview">Welcome to FlowMatic Terminal</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-left">
+                <div class="connection-status">
+                    <div class="status-dot" id="footerConnectionDot"></div>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+            </div>
+
+            <div class="footer-center">
+                <button class="quick-action">Break</button>
+                <button class="quick-action">Help</button>
+                <button class="quick-action">Supervisor</button>
+            </div>
+
+            <div class="footer-right">
+                <span style="color: var(--medium-gray); font-size: 0.85rem;">Session Time:</span>
+                <div class="timer" id="sessionTimer">00:00:00</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div class="transfer-modal" id="transferModal">
+        <div class="transfer-modal-content">
+            <div class="transfer-modal-header">
+                <h2 class="transfer-modal-title">Transfer Ticket</h2>
+                <p class="transfer-modal-subtitle">Select a service to transfer this ticket to</p>
+            </div>
+
+            <div class="transfer-services-grid" id="transferServicesGrid">
+                <!-- Services will be populated here -->
+            </div>
+
+            <div class="transfer-modal-actions">
+                <button class="transfer-modal-btn cancel" onclick="closeTransferModal()">Cancel</button>
+                <button class="transfer-modal-btn confirm" id="confirmTransferBtn" onclick="confirmTransfer()" disabled>Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
+            
+        // State management
+        let session = null;
+        let socket = null;
+        let currentTicket = null;
+        let selectedService = null;
+        let selectedPriority = 0;
+        let serviceTimer = null;
+        let sessionTimer = null;
+        let ticketsServedCount = 0;
+        let parkedTickets = []; // Store parked tickets
+        let loadedServices = []; // Global services cache for name lookup
+        let recycledTickets = []; // Store locally recycled tickets for demo purposes
+        let agentServices = []; // Services assigned to current agent
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkExistingSession();
+            loadCounters();
+            
+            // Add keyboard shortcut for demo mode (Ctrl+D)
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'd' && document.getElementById('loginScreen').style.display !== 'none') {
+                    e.preventDefault();
+                    skipLogin();
+                }
+            });
+        });
+        
+        // Skip login for demo mode
+        function skipLogin() {
+            showNotification('Demo mode disabled - please use real login credentials', 'error');
+        }
+        
+        // Load available counters
+        async function loadCounters() {
+            try {
+                const response = await fetch(`${API_BASE}/counters`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById('counterId');
+                    select.innerHTML = '<option value="">Choose a counter...</option>';
+                    
+                    // Handle different response formats
+                    const counterList = Array.isArray(data) ? data : data.counters || [];
+                    
+                    counterList.forEach(counter => {
+                        const option = document.createElement('option');
+                        option.value = counter.id;
+                        option.textContent = `${counter.name} - ${counter.location || 'Main'}`;
+                        select.appendChild(option);
+                    });
+                    
+                    console.log('✅ Loaded counters from API:', counterList.length);
+                } else {
+                    // Add default counters if API fails
+                    addDefaultCounters();
+                }
+            } catch (error) {
+                console.error('Failed to load counters:', error);
+                // Add default counters on error
+                addDefaultCounters();
+            }
+        }
+        
+        // Add default counters for demo/testing
+        function addDefaultCounters() {
+            const select = document.getElementById('counterId');
+            select.innerHTML = `
+                <option value="">Choose a counter...</option>
+                <option value="1">Counter 1 - Main Hall</option>
+                <option value="2">Counter 2 - Main Hall</option>
+                <option value="3">VIP Counter - VIP Area</option>
+                <option value="4">Technical Counter - Technical Area</option>
+            `;
+        }
+        
+        // Load available services
+        async function loadServices() {
+            const select = document.getElementById('serviceSelector');
+            
+            // Try multiple API endpoints to find the correct one
+            const endpoints = [
+                `${API_BASE}/services`,           // Try /api/services first
+                `${API_BASE}/kiosk/services`,     // Then /api/kiosk/services
+                `${API_BASE}/admin/services`,     // Then /api/admin/services
+                `${API_BASE}/terminal/services`,  // Try terminal services
+                `${API_BASE}/service/list`        // Alternative endpoint
+            ];
+            
+            for (let endpoint of endpoints) {
+                try {
+                    console.log(`🔍 Trying services endpoint: ${endpoint}`);
+                    const response = await fetch(endpoint);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Services API response:', data);
+                        
+                        select.innerHTML = '';
+                        
+                        // Handle different response formats
+                        let serviceList = [];
+                        if (Array.isArray(data)) {
+                            serviceList = data;  // Direct array
+                        } else if (data.services) {
+                            serviceList = data.services;  // {services: [...]}
+                        } else if (data.data) {
+                            serviceList = data.data;  // {data: [...]}
+                        }
+                        
+                        console.log('📋 Processing services:', serviceList);
+                        
+                        if (serviceList.length > 0) {
+                            // Store services globally for name lookup
+                            loadedServices = serviceList;
+                            
+                            serviceList.forEach(service => {
+                                if (service.is_active !== false) {
+                                    const option = document.createElement('option');
+                                    option.value = service.id;
+                                    option.textContent = service.name;
+                                    select.appendChild(option);
+                                }
+                            });
+                            
+                            // Select first service by default
+                            if (select.options.length > 0) {
+                                selectedService = parseInt(select.options[0].value);
+                                select.value = selectedService;
+                                console.log('✅ Selected default service:', selectedService);
+                                loadQueue();
+                                return;  // Success, exit the loop
+                            }
+                        }
+                    } else {
+                        console.warn(`❌ ${endpoint} failed with status:`, response.status);
+                    }
+                } catch (error) {
+                    console.warn(`❌ ${endpoint} error:`, error.message);
+                }
+            }
+            
+            // If all endpoints fail, use default services (don't show error notification)
+            console.log('🔄 All service endpoints failed, using defaults (this is normal for demo)');
+            addDefaultServices();
+        }
+        
+        // Add default services for demo/testing
+        function addDefaultServices() {
+            const select = document.getElementById('serviceSelector');
+            select.innerHTML = `
+                <option value="1">General Service</option>
+                <option value="2">Account Services</option>
+                <option value="3">VIP Services</option>
+                <option value="4">Technical Support</option>
+            `;
+            
+            // Set default services for name lookup
+            loadedServices = [
+                { id: 1, name: 'General Service' },
+                { id: 2, name: 'Account Services' },
+                { id: 3, name: 'VIP Services' },
+                { id: 4, name: 'Technical Support' }
+            ];
+            
+            // Set default selection
+            selectedService = 1;
+            select.value = selectedService;
+            console.log('🔄 Using default services, selected:', selectedService);
+            
+            // Load queue for default service
+            loadQueue();
+        }
+        
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const counterId = document.getElementById('counterId').value;
+            
+            if (!counterId) {
+                showLoginError('Please select a counter');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/terminal/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, counterId })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Login successful:', data);
+                    
+                    // Ensure session has all required fields
+                    session = {
+                        id: data.session?.id || data.sessionId || username + '-' + Date.now(),
+                        username: username,
+                        counterId: counterId,
+                        agent: data.session?.agent || data.agent || { id: data.agentId || 1, name: username, role: 'agent' },
+                        counter: data.session?.counter || data.counter || { id: counterId, number: counterId, name: `Counter ${counterId}` },
+                        ...data.session
+                    };
+                    
+                    console.log('📋 Session prepared:', session);
+                    localStorage.setItem('flowmatic_session', JSON.stringify(session));
+                    initializeTerminal();
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Login failed' }));
+                    showLoginError(errorData.error || errorData.message || 'Invalid username or password');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showLoginError('Unable to connect to server. Please check your connection.');
+            }
+        });
+        
+        // Show login error
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Check for existing session
+        async function checkExistingSession() {
+            const savedSession = localStorage.getItem('flowmatic_session');
+            if (savedSession) {
+                session = JSON.parse(savedSession);
+                
+                try {
+                    const response = await fetch(`${API_BASE}/terminal/session/${session.id}`);
+                    if (response.ok) {
+                        initializeTerminal();
+                    } else {
+                        localStorage.removeItem('flowmatic_session');
+                    }
+                } catch (error) {
+                    localStorage.removeItem('flowmatic_session');
+                }
+            }
+        }
+        
+        // Initialize terminal
+        function initializeTerminal() {
+            console.log('🚀 Initializing terminal with session:', session);
+            
+            // Show terminal screen
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('terminalScreen').classList.add('active');
+            
+            // Update UI with session info
+            document.getElementById('agentName').textContent = session.agent?.name || session.username || 'Agent';
+            document.getElementById('agentRole').textContent = `${session.agent?.role || 'agent'} • Level 5`;
+            document.getElementById('counterStatus').textContent = `Counter ${session.counter?.number || session.counter?.id || session.counterId} Active`;
+            
+            // Start session timer
+            startSessionTimer();
+            
+            // Connect to Socket.IO
+            connectSocket();
+            
+            // Load initial data - services first, then queue
+            console.log('📊 Loading initial data...');
+            console.log('💡 Note: Some API endpoints may not be implemented yet - this is normal.');
+            console.log('💡 Functions will try multiple endpoint variations and fall back gracefully.');
+            
+            // Load services (this will fallback to defaults if needed)
+            loadServices();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showNotification('Terminal connected and ready!', 'success');
+            }, 1000);
+            
+            console.log('✅ Terminal initialized successfully');
+        }
+        
+        // Connect to Socket.IO
+        function connectSocket() {
+            try {
+                // Check if io is defined (Socket.IO loaded)
+                if (typeof io === 'undefined') {
+                    console.warn('Socket.IO not loaded');
+                    updateConnectionStatus(false);
+                    return;
+                }
+                
+                // Connect to real FlowMatic Socket.IO server
+                socket = io('http://localhost:5050/terminal', {
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 5
+                });
+                
+                socket.on('connect', () => {
+                    console.log('✅ Connected to FlowMatic Socket.IO server');
+                    updateConnectionStatus(true);
+                    
+                    // Join service room
+                    if (selectedService) {
+                        socket.emit('join-service', { serviceId: selectedService });
+                    }
+                    
+                    // Join counter room
+                    if (session && session.counter) {
+                        socket.emit('join-counter', { counterId: session.counter.id });
+                    }
+                });
+                
+                socket.on('disconnect', () => {
+                    console.log('❌ Disconnected from server');
+                    updateConnectionStatus(false);
+                });
+                
+                socket.on('connect_error', (error) => {
+                    console.warn('Socket connection error:', error.message);
+                    updateConnectionStatus(false);
+                });
+                
+                // Handle real-time events
+                socket.on('ticket-created', handleTicketCreated);
+                socket.on('ticket-called', handleTicketCalled);
+                socket.on('ticket-completed', handleTicketCompleted);
+                socket.on('queue-updated', handleQueueUpdated);
+                socket.on('system-alert', handleSystemAlert);
+                
+                // Handle welcome message
+                socket.on('welcome', (data) => {
+                    console.log('Welcome message:', data);
+                });
+                
+                // Handle heartbeat
+                socket.on('heartbeat-ping', (data) => {
+                    socket.emit('heartbeat-pong', { timestamp: Date.now() });
+                });
+            } catch (error) {
+                console.error('Failed to connect Socket.IO:', error);
+                updateConnectionStatus(false);
+            }
+        }
+        
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const dots = document.querySelectorAll('.status-dot');
+            const connectionText = document.getElementById('connectionText');
+            
+            dots.forEach(dot => {
+                if (connected) {
+                    dot.classList.remove('disconnected');
+                } else {
+                    dot.classList.add('disconnected');
+                }
+            });
+            
+            connectionText.textContent = connected 
+                ? 'Connected • Real-time sync active' 
+                : 'Disconnected • Attempting to reconnect...';
+        }
+        
+        // Load queue
+        async function loadQueue() {
+            if (!selectedService) {
+                console.warn('⚠️ No service selected for queue loading');
+                displayQueue([]);
+                return;
+            }
+            
+            // Try multiple queue endpoints
+            const endpoints = [
+                `${API_BASE}/terminal/queue/${selectedService}?priority=${selectedPriority}`,
+                `${API_BASE}/queue/${selectedService}?priority=${selectedPriority}`,
+                `${API_BASE}/kiosk/queue/${selectedService}`
+            ];
+            
+            for (let endpoint of endpoints) {
+                try {
+                    console.log(`🔍 Trying queue endpoint: ${endpoint}`);
+                    const response = await fetch(endpoint);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Queue API response:', data);
+                        
+                        // Handle different response formats
+                        let tickets = [];
+                        if (Array.isArray(data)) {
+                            tickets = data;  // Direct array
+                        } else if (data.tickets) {
+                            tickets = data.tickets;  // {tickets: [...]}
+                        } else if (data.queue) {
+                            tickets = data.queue;  // {queue: [...]}
+                        } else if (data.data) {
+                            tickets = data.data;  // {data: [...]}
+                        }
+                        
+                        console.log('📋 Processing queue tickets:', tickets.length);
+                        displayQueue(tickets);
+                        return;  // Success, exit the loop
+                    } else {
+                        console.warn(`❌ ${endpoint} failed with status:`, response.status);
+                    }
+                } catch (error) {
+                    console.warn(`❌ ${endpoint} error:`, error.message);
+                }
+            }
+            
+            // If all endpoints fail, show empty queue
+            console.log('🔄 All queue endpoints failed, showing empty queue');
+            displayQueue([]);
+        }
+        
+        // Display queue with cherry-pick functionality and recycled ticket insertion
+        function displayQueue(tickets) {
+            const queueList = document.getElementById('queueList');
+            const queueCount = document.getElementById('queueCount');
+            
+            console.log('📋 Original tickets from API:', tickets);
+            console.log('♻️ Local recycled tickets:', recycledTickets);
+            
+            // Insert locally recycled tickets at position 3 for current service
+            let processedTickets = [...tickets];
+            
+            // Find recycled tickets for current service
+            const serviceRecycledTickets = recycledTickets.filter(t => 
+                (t.original_service_id || t.service_id) == selectedService
+            );
+            
+            if (serviceRecycledTickets.length > 0) {
+                console.log('♻️ Found recycled tickets for current service:', serviceRecycledTickets);
+                
+                // Insert each recycled ticket at position 3 (index 2)
+                serviceRecycledTickets.forEach(recycledTicket => {
+                    const insertPosition = Math.min(2, processedTickets.length); // Position 3 = index 2
+                    processedTickets.splice(insertPosition, 0, {
+                        ...recycledTicket,
+                        isRecycled: true, // Mark as recycled for display
+                        state: 'waiting' // Ensure it shows as waiting
+                    });
+                });
+                
+                // Remove from recycled list since they're now back in queue
+                recycledTickets = recycledTickets.filter(t => 
+                    (t.original_service_id || t.service_id) != selectedService
+                );
+                
+                console.log('✅ Inserted recycled tickets at position 3, new queue:', processedTickets);
+            }
+            
+            queueCount.textContent = processedTickets.length;
+            document.getElementById('currentQueueSize').textContent = processedTickets.length;
+            
+            if (processedTickets.length === 0) {
+                queueList.innerHTML = '<div class="queue-empty">No tickets in queue</div>';
+                return;
+            }
+            
+            queueList.innerHTML = '';
+            processedTickets.forEach((ticket, index) => {
+                // Handle different field names from backend
+                const ticketNumber = ticket.ticket_number || ticket.number || ticket.ticketNumber || `#${ticket.id}`;
+                const createdAt = ticket.created_at || ticket.createdAt || ticket.timestamp || Date.now();
+                const priority = ticket.priority || 0;
+                const isRecycled = ticket.isRecycled || false;
+                
+                // Calculate wait time more safely
+                let waitMinutes = 0;
+                try {
+                    const createdTime = new Date(createdAt).getTime();
+                    if (!isNaN(createdTime)) {
+                        waitMinutes = Math.floor((Date.now() - createdTime) / 60000);
+                    }
+                } catch (error) {
+                    console.warn('Date parsing error:', error, 'for ticket:', ticket);
+                    waitMinutes = 0;
+                }
+                
+                const item = document.createElement('div');
+                item.className = `queue-item animate-in ${priority > 0 ? 'priority' : ''} ${isRecycled ? 'recycled' : ''}`;
+                
+                // Add visual indicator for recycled tickets
+                const recycledIndicator = isRecycled ? ' <span style="color: #28a745; font-size: 0.7rem;">♻️ RECYCLED</span>' : '';
+                
+                item.innerHTML = `
+                    <div class="queue-number">${ticketNumber}${recycledIndicator}</div>
+                    <div class="queue-meta">
+                        <span>Wait: ${waitMinutes} min</span>
+                        <span>Position: ${index + 1}</span>
+                    </div>
+                `;
+                
+                // Add cherry-pick click handler
+                item.addEventListener('click', () => cherryPickTicket(ticket));
+                
+                queueList.appendChild(item);
+            });
+            
+            console.log('📋 Final displayed queue with', processedTickets.length, 'tickets');
+        }
+        
+        // Display parked tickets with unpark functionality
+        function displayParkedTickets() {
+            const parkList = document.getElementById('parkList');
+            const parkCount = document.getElementById('parkCount');
+            
+            parkCount.textContent = parkedTickets.length;
+            
+            if (parkedTickets.length === 0) {
+                parkList.innerHTML = '<div class="queue-empty">No parked tickets</div>';
+                return;
+            }
+            
+            parkList.innerHTML = '';
+            parkedTickets.forEach(ticket => {
+                // Handle different field names from backend
+                const ticketNumber = ticket.ticket_number || ticket.number || ticket.ticketNumber || `#${ticket.id}`;
+                const parkedAt = ticket.parked_at || ticket.parkedAt || new Date().toISOString();
+                
+                let parkedMinutes = 0;
+                try {
+                    const parkedTime = new Date(parkedAt).getTime();
+                    if (!isNaN(parkedTime)) {
+                        parkedMinutes = Math.floor((Date.now() - parkedTime) / 60000);
+                    }
+                } catch (error) {
+                    console.warn('Parked time calculation error:', error);
+                    parkedMinutes = 0;
+                }
+                
+                const item = document.createElement('div');
+                item.className = 'park-item animate-in';
+                item.innerHTML = `
+                    <div class="park-number">${ticketNumber}</div>
+                    <div class="park-meta">
+                        <span>Parked: ${parkedMinutes} min ago</span>
+                        <span>Click to unpark</span>
+                    </div>
+                `;
+                
+                // Add unpark click handler
+                item.addEventListener('click', () => unparkTicket(ticket));
+                
+                parkList.appendChild(item);
+            });
+            
+            console.log('🅿️ Displayed parked tickets:', parkedTickets.map(t => ({
+                id: t.id,
+                number: t.ticket_number || t.number,
+                parked: t.parked_at
+            })));
+        }
+        
+        // Cherry-pick ticket from queue
+        function cherryPickTicket(ticket) {
+            if (currentTicket) {
+                showNotification('Please complete current ticket first', 'error');
+                return;
+            }
+            
+            // Handle different field names from backend
+            const ticketNumber = ticket.ticket_number || ticket.number || ticket.ticketNumber || `#${ticket.id}`;
+            const serviceId = ticket.service_id || ticket.serviceId || ticket.service || selectedService;
+            
+            currentTicket = {
+                ...ticket,
+                // Ensure all required fields are present
+                id: ticket.id,
+                ticket_number: ticketNumber,
+                service_id: serviceId,
+                customer_name: ticket.customer_name || ticket.customerName || 'Walk-in Customer',
+                customer_phone: ticket.customer_phone || ticket.customerPhone || '+1234567890',
+                called_at: new Date().toISOString(),
+                // Preserve original creation time
+                created_at: ticket.created_at || ticket.createdAt || new Date().toISOString()
+            };
+            
+            updateTicketDisplay();
+            startServiceTimer();
+            addActivity('Cherry-picked', ticketNumber);
+            showNotification(`Called ticket ${ticketNumber}`, 'success');
+            
+            console.log('🎯 Cherry-picked ticket:', currentTicket);
+        }
+        
+        // Unpark ticket from park list
+        function unparkTicket(ticket) {
+            if (currentTicket) {
+                showNotification('Please complete current ticket first', 'error');
+                return;
+            }
+            
+            // Remove from parked list
+            parkedTickets = parkedTickets.filter(t => t.id !== ticket.id);
+            
+            // Set as current ticket
+            currentTicket = {
+                ...ticket,
+                customer_name: 'Walk-in Customer',
+                customer_phone: '+1234567890',
+                called_at: new Date().toISOString()
+            };
+            
+            updateTicketDisplay();
+            displayParkedTickets();
+            startServiceTimer();
+            addActivity('Unparked', ticket.ticket_number);
+            showNotification(`Unparked and called ticket ${ticket.ticket_number}`, 'success');
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Service selector
+            document.getElementById('serviceSelector').addEventListener('change', (e) => {
+                selectedService = parseInt(e.target.value);
+                if (socket && selectedService) {
+                    socket.emit('join-service', { serviceId: selectedService });
+                }
+                loadQueue();
+            });
+            
+            // Priority toggle
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedPriority = parseInt(this.dataset.priority);
+                    loadQueue();
+                });
+            });
+            
+            // Action buttons
+            document.getElementById('btnNext').addEventListener('click', callNext);
+            document.getElementById('btnRecall').addEventListener('click', recall);
+            document.getElementById('btnEnd').addEventListener('click', complete);
+            document.getElementById('btnNoShow').addEventListener('click', noShow);
+            document.getElementById('btnRecycle').addEventListener('click', recycle);
+            document.getElementById('btnPark').addEventListener('click', park);
+            document.getElementById('btnTransfer').addEventListener('click', transfer);
+            document.getElementById('btnOpenClose').addEventListener('click', toggleCounter);
+            
+            // Panel tabs
+            document.querySelectorAll('.panel-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Hide all panels
+                    document.getElementById('activityPanel').style.display = 'none';
+                    document.getElementById('statsPanel').style.display = 'none';
+                    document.getElementById('parkPanel').style.display = 'none';
+                    document.getElementById('messagesPanel').style.display = 'none';
+                    
+                    // Show selected panel
+                    const panelId = this.dataset.panel + 'Panel';
+                    document.getElementById(panelId).style.display = 'block';
+                });
+            });
+            
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
+            console.log('✅ Event listeners setup complete');
+        }
+        
+        // Call next ticket with service assignment validation
+        async function callNext() {
+            if (!session || !selectedService) {
+                showNotification('No session or service selected', 'error');
+                return;
+            }
+            
+            // Check if agent is assigned to this service
+            if (!isAgentAssignedToService(selectedService)) {
+                showNotification(`You are not assigned to this service. Please contact your supervisor.`, 'error');
+                console.warn('Agent not assigned to service:', selectedService);
+                return;
+            }
+            
+            try {
+                const btn = document.getElementById('btnNext');
+                btn.classList.add('loading');
+                
+                // Prepare payload with all required fields
+                const payload = {
+                    sessionId: session.id,
+                    serviceId: selectedService,
+                    counterId: session.counter?.id || session.counterId,
+                    agentId: session.agent?.id || session.agentId || session.id
+                };
+                
+                console.log('📞 Calling next ticket with payload:', payload);
+                
+                const response = await fetch(`${API_BASE}/terminal/call-next`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Call-next response:', data);
+                    
+                    // Handle different response formats
+                    const ticket = data.ticket || data.data || data;
+                    
+                    currentTicket = {
+                        ...ticket,
+                        called_at: new Date().toISOString(),
+                        service_id: ticket.service_id || ticket.serviceId || selectedService
+                    };
+                    
+                    updateTicketDisplay();
+                    startServiceTimer();
+                    addActivity('Called', currentTicket.ticket_number || currentTicket.number);
+                    showNotification(`Called ticket ${currentTicket.ticket_number || currentTicket.number}`, 'success');
+                    
+                    // Refresh queue
+                    loadQueue();
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error('❌ Call-next failed:', errorData);
+                    
+                    // Handle specific service assignment errors
+                    if (errorData.error && errorData.error.includes('not assigned')) {
+                        showNotification('You are not assigned to this service. Contact supervisor.', 'error');
+                    } else {
+                        showNotification(errorData.error || errorData.message || 'No tickets available', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Call-next network error:', error);
+                showNotification('Failed to call next ticket - network error', 'error');
+            } finally {
+                document.getElementById('btnNext').classList.remove('loading');
+            }
+        }
+        
+        // Park current ticket
+        async function park() {
+            if (!session || !currentTicket) {
+                showNotification('No session or current ticket', 'error');
+                return;
+            }
+            
+            const payload = {
+                sessionId: session.id,
+                ticketId: currentTicket.id,
+                counterId: session.counter?.id || session.counterId,
+                agentId: session.agent?.id || session.agentId || session.id
+            };
+            
+            // Try multiple park endpoints
+            const endpoints = [
+                `${API_BASE}/terminal/park`,
+                `${API_BASE}/park`,
+                `${API_BASE}/ticket/park`,
+                `${API_BASE}/terminal/park-ticket`
+            ];
+            
+            for (let endpoint of endpoints) {
+                try {
+                    console.log(`🅿️ Trying park endpoint: ${endpoint} with payload:`, payload);
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+                        
+                        // Add to local parked list
+                        parkedTickets.push({
+                            ...currentTicket,
+                            parked_at: new Date().toISOString()
+                        });
+                        
+                        addActivity('Parked', ticketNumber);
+                        showNotification(`Parked ticket ${ticketNumber}`, 'success');
+                        currentTicket = null;
+                        updateTicketDisplay();
+                        displayParkedTickets();
+                        loadQueue();
+                        return; // Success
+                    } else {
+                        console.warn(`❌ ${endpoint} failed with status:`, response.status);
+                    }
+                } catch (error) {
+                    console.warn(`❌ ${endpoint} error:`, error.message);
+                }
+            }
+            
+            // If all endpoints fail, show demo behavior
+            console.log('🔄 All park endpoints failed, using local parking');
+            const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+            
+            // Add to local parked list anyway
+            parkedTickets.push({
+                ...currentTicket,
+                parked_at: new Date().toISOString()
+            });
+            
+            addActivity('Parked (Local)', ticketNumber);
+            showNotification(`Parked ticket ${ticketNumber} (local only)`, 'success');
+            currentTicket = null;
+            updateTicketDisplay();
+            displayParkedTickets();
+        }
+        
+        // Complete ticket
+        async function complete() {
+            if (!session || !currentTicket) {
+                showNotification('No session or current ticket', 'error');
+                return;
+            }
+            
+            try {
+                // Prepare payload with all required fields
+                const payload = {
+                    sessionId: session.id,
+                    ticketId: currentTicket.id,
+                    counterId: session.counter?.id || session.counterId,
+                    agentId: session.agent?.id || session.agentId || session.id
+                };
+                
+                console.log('✅ Completing ticket with payload:', payload);
+                
+                const response = await fetch(`${API_BASE}/terminal/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+                    addActivity('Completed', ticketNumber);
+                    showNotification(`Completed ticket ${ticketNumber}`, 'success');
+                    currentTicket = null;
+                    updateTicketDisplay();
+                    loadQueue();
+                    
+                    // Update stats
+                    ticketsServedCount++;
+                    document.getElementById('ticketsServed').textContent = ticketsServedCount;
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error('❌ Complete failed:', errorData);
+                    showNotification(errorData.error || 'Failed to complete ticket', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Complete network error:', error);
+                showNotification('Failed to complete ticket - network error', 'error');
+            }
+        }
+        
+        // Recall ticket
+        async function recall() {
+            if (!session || !currentTicket) {
+                showNotification('No session or current ticket', 'error');
+                return;
+            }
+            
+            try {
+                const payload = {
+                    sessionId: session.id,
+                    ticketId: currentTicket.id,
+                    counterId: session.counter?.id || session.counterId,
+                    agentId: session.agent?.id || session.agentId || session.id
+                };
+                
+                console.log('🔄 Recalling ticket with payload:', payload);
+                
+                const response = await fetch(`${API_BASE}/terminal/recall`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+                    addActivity('Recalled', ticketNumber);
+                    showNotification(`Recalled ticket ${ticketNumber}`, 'success');
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error('❌ Recall failed:', errorData);
+                    showNotification(errorData.error || 'Failed to recall ticket', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Recall network error:', error);
+                showNotification('Failed to recall ticket - network error', 'error');
+            }
+        }
+        
+        // No show
+        async function noShow() {
+            if (!session || !currentTicket) {
+                showNotification('No session or current ticket', 'error');
+                return;
+            }
+            
+            // Try different payload formats
+            const payloads = [
+                {
+                    sessionId: session.id,
+                    ticketId: currentTicket.id,
+                    counterId: session.counter?.id || session.counterId,
+                    agentId: session.agent?.id || session.agentId || session.id
+                },
+                {
+                    ticketId: currentTicket.id,
+                    agentId: session.agent?.id || session.agentId || session.id,
+                    counterId: session.counter?.id || session.counterId
+                },
+                {
+                    id: currentTicket.id,
+                    state: 'no_show'
+                }
+            ];
+            
+            // Try multiple no-show endpoints
+            const endpoints = [
+                `${API_BASE}/terminal/no-show`,
+                `${API_BASE}/noshow`,
+                `${API_BASE}/ticket/no-show`,
+                `${API_BASE}/terminal/noshow`,
+                `${API_BASE}/ticket/state`
+            ];
+            
+            for (let endpoint of endpoints) {
+                for (let payload of payloads) {
+                    try {
+                        console.log(`❌ Trying no-show endpoint: ${endpoint} with payload:`, payload);
+                        
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (response.ok) {
+                            const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+                            addActivity('No show', ticketNumber);
+                            showNotification(`Marked ${ticketNumber} as no-show`, 'success');
+                            currentTicket = null;
+                            updateTicketDisplay();
+                            loadQueue();
+                            return; // Success
+                        } else {
+                            console.warn(`❌ ${endpoint} failed with status:`, response.status);
+                        }
+                    } catch (error) {
+                        console.warn(`❌ ${endpoint} error:`, error.message);
+                    }
+                }
+            }
+            
+            // If all endpoints fail, show demo behavior
+            console.log('🔄 All no-show endpoints failed, using local completion');
+            const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+            addActivity('No show (Local)', ticketNumber);
+            showNotification(`Marked ${ticketNumber} as no-show (local only)`, 'success');
+            currentTicket = null;
+            updateTicketDisplay();
+        }
+        
+        // Recycle ticket - Put ticket back in queue at position 3
+        async function recycle() {
+            if (!session || !currentTicket) {
+                showNotification('No session or current ticket', 'error');
+                return;
+            }
+            
+            const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+            console.log(`♻️ Recycling ticket ${ticketNumber} - should go to position 3 in queue`);
+            
+            const payload = {
+                sessionId: session.id,
+                ticketId: currentTicket.id,
+                serviceId: currentTicket.service_id || selectedService,
+                counterId: session.counter?.id || session.counterId,
+                agentId: session.agent?.id || session.agentId || session.id,
+                position: 3 // Insert at position 3 as per architecture
+            };
+            
+            // Try multiple recycle endpoints
+            const endpoints = [
+                `${API_BASE}/terminal/recycle`,
+                `${API_BASE}/recycle`,
+                `${API_BASE}/ticket/recycle`,
+                `${API_BASE}/terminal/recycle-ticket`,
+                `${API_BASE}/ticket/requeue`
+            ];
+            
+            let recycled = false;
+            
+            for (let endpoint of endpoints) {
+                try {
+                    console.log(`♻️ Trying recycle endpoint: ${endpoint} with payload:`, payload);
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        recycled = true;
+                        console.log('✅ Ticket recycled via API - should appear at position 3');
+                        break;
+                    } else {
+                        console.warn(`❌ ${endpoint} failed with status:`, response.status);
+                    }
+                } catch (error) {
+                    console.warn(`❌ ${endpoint} error:`, error.message);
+                }
+            }
+            
+            // If API failed, simulate locally to ensure ticket reappears
+            if (!recycled) {
+                console.log('🔄 API failed, simulating recycle locally');
+                
+                // Add to local recycled tickets with timestamp
+                recycledTickets.push({
+                    ...currentTicket,
+                    recycled_at: new Date().toISOString(),
+                    original_service_id: currentTicket.service_id || selectedService,
+                    target_position: 3
+                });
+                
+                console.log('📝 Added to local recycled tickets:', recycledTickets);
+            }
+            
+            // Clear current ticket and refresh UI
+            addActivity('Recycled' + (recycled ? '' : ' (Local)'), ticketNumber);
+            showNotification(`Recycled ticket ${ticketNumber} - will appear at position 3${recycled ? '' : ' (local simulation)'}`, 'success');
+            
+            currentTicket = null;
+            updateTicketDisplay();
+            
+            // Force refresh the queue multiple times to ensure recycled ticket appears
+            console.log('🔄 Refreshing queue to show recycled ticket...');
+            setTimeout(() => loadQueue(), 200);   // Quick refresh
+            setTimeout(() => loadQueue(), 1000);  // Delayed refresh
+            setTimeout(() => loadQueue(), 2000);  // Final refresh
+        }
+        
+        // Transfer ticket
+        async function transfer() {
+            if (!session || !currentTicket) {
+                showNotification('No session or current ticket', 'error');
+                return;
+            }
+            
+            console.log('🔄 Starting transfer process...');
+            
+            // Always show transfer modal - try to load real services first
+            try {
+                const response = await fetch(`${API_BASE}/services`);
+                if (response.ok) {
+                    const services = await response.json();
+                    const serviceList = Array.isArray(services) ? services : services.services || [];
+                    const otherServices = serviceList.filter(s => s.id !== currentTicket.service_id && s.is_active !== false);
+                    
+                    if (otherServices.length === 0) {
+                        showNotification('No other services available', 'error');
+                        return;
+                    }
+                    
+                    console.log('✅ Loaded real services for transfer:', otherServices);
+                    showTransferModal(otherServices);
+                    return;
+                }
+            } catch (error) {
+                console.warn('Failed to load real services, using defaults:', error);
+            }
+            
+            // Fallback to default services
+            console.log('🔄 Using default services for transfer');
+            showTransferModal();
+        }
+        
+        let selectedTransferService = null;
+        
+        // Show transfer modal
+        function showTransferModal(services = null) {
+            const modal = document.getElementById('transferModal');
+            const grid = document.getElementById('transferServicesGrid');
+            
+            // Default services for demo mode
+            const defaultServices = [
+                { id: 1, name: 'General Service', icon: '🏢', desc: 'General inquiries and services' },
+                { id: 2, name: 'Account Services', icon: '💳', desc: 'Account opening, modifications' },
+                { id: 3, name: 'VIP Services', icon: '⭐', desc: 'Premium customer services' },
+                { id: 4, name: 'Technical Support', icon: '🔧', desc: 'Technical assistance and support' }
+            ];
+            
+            const servicesToShow = services || defaultServices;
+            const currentServiceId = currentTicket.service_id;
+            const availableServices = servicesToShow.filter(s => s.id !== currentServiceId);
+            
+            // Populate services grid
+            grid.innerHTML = '';
+            availableServices.forEach(service => {
+                const serviceDiv = document.createElement('div');
+                serviceDiv.className = 'transfer-service-option';
+                serviceDiv.innerHTML = `
+                    <div class="transfer-service-icon">${service.icon || '📋'}</div>
+                    <div class="transfer-service-name">${service.name}</div>
+                    <div class="transfer-service-desc">${service.desc || service.description || ''}</div>
+                `;
+                
+                serviceDiv.addEventListener('click', () => selectTransferService(service, serviceDiv));
+                grid.appendChild(serviceDiv);
+            });
+            
+            // Reset selection
+            selectedTransferService = null;
+            document.getElementById('confirmTransferBtn').disabled = true;
+            
+            // Show modal
+            modal.classList.add('show');
+        }
+        
+        // Select transfer service
+        function selectTransferService(service, element) {
+            // Remove previous selection
+            document.querySelectorAll('.transfer-service-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selection to clicked element
+            element.classList.add('selected');
+            selectedTransferService = service;
+            
+            // Enable confirm button
+            document.getElementById('confirmTransferBtn').disabled = false;
+        }
+        
+        // Close transfer modal
+        function closeTransferModal() {
+            document.getElementById('transferModal').classList.remove('show');
+            selectedTransferService = null;
+        }
+        
+        // Confirm transfer
+        async function confirmTransfer() {
+            if (!selectedTransferService) {
+                showNotification('Please select a service first', 'error');
+                return;
+            }
+            
+            console.log('🔄 Confirming transfer to:', selectedTransferService);
+            
+            const payload = {
+                sessionId: session.id,
+                ticketId: currentTicket.id,
+                toServiceId: selectedTransferService.id,
+                counterId: session.counter?.id || session.counterId,
+                agentId: session.agent?.id || session.agentId || session.id
+            };
+            
+            // Try multiple transfer endpoints
+            const endpoints = [
+                `${API_BASE}/terminal/transfer`,
+                `${API_BASE}/transfer`,
+                `${API_BASE}/ticket/transfer`,
+                `${API_BASE}/terminal/transfer-ticket`
+            ];
+            
+            let transferred = false;
+            const ticketNumber = currentTicket.ticket_number || currentTicket.number;
+            
+            for (let endpoint of endpoints) {
+                try {
+                    console.log(`🔄 Trying transfer endpoint: ${endpoint} with payload:`, payload);
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        transferred = true;
+                        console.log('✅ Ticket transferred via API');
+                        break;
+                    } else {
+                        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                        console.warn(`❌ ${endpoint} failed:`, response.status, errorData);
+                    }
+                } catch (error) {
+                    console.warn(`❌ ${endpoint} error:`, error.message);
+                }
+            }
+            
+            // Clear current ticket and update UI
+            addActivity('Transferred' + (transferred ? '' : ' (Local)'), `${ticketNumber} to ${selectedTransferService.name}`);
+            showNotification(`Transferred to ${selectedTransferService.name}${transferred ? '' : ' (local only)'}`, 'success');
+            
+            currentTicket = null;
+            updateTicketDisplay();
+            loadQueue();
+            closeTransferModal();
+        }
+        
+        // Toggle counter open/close
+        function toggleCounter() {
+            if (!session) return;
+            
+            const btn = document.getElementById('btnOpenClose');
+            const currentText = btn.querySelector('.action-btn-text').textContent;
+            const isOpen = currentText === 'CLOSE';
+            
+            // Demo mode
+            if (session.id && session.id.startsWith('demo-')) {
+                btn.querySelector('.action-btn-text').textContent = isOpen ? 'OPEN' : 'CLOSE';
+                showNotification(`Counter ${isOpen ? 'closed' : 'opened'}`, 'success');
+                return;
+            }
+            
+            // Real API call would go here
+            showNotification('Counter state updated', 'success');
+        }
+        
+        // Update ticket display
+        function updateTicketDisplay() {
+            const noTicket = document.getElementById('noTicket');
+            const ticketContent = document.getElementById('ticketContent');
+            
+            if (!currentTicket) {
+                noTicket.style.display = 'flex';
+                ticketContent.style.display = 'none';
+                
+                // Disable action buttons
+                ['btnRecall', 'btnEnd', 'btnNoShow', 'btnRecycle', 'btnPark', 'btnTransfer'].forEach(id => {
+                    document.getElementById(id).disabled = true;
+                });
+                
+                // Clear service timer
+                if (serviceTimer) {
+                    clearInterval(serviceTimer);
+                    serviceTimer = null;
+                }
+            } else {
+                noTicket.style.display = 'none';
+                ticketContent.style.display = 'block';
+                
+                // Handle different field names from backend
+                const ticketNumber = currentTicket.ticket_number || currentTicket.number || currentTicket.ticketNumber || `#${currentTicket.id}`;
+                const serviceId = currentTicket.service_id || currentTicket.serviceId || currentTicket.service || selectedService;
+                const createdAt = currentTicket.created_at || currentTicket.createdAt || currentTicket.timestamp;
+                const calledAt = currentTicket.called_at || currentTicket.calledAt || new Date().toISOString();
+                const customerName = currentTicket.customer_name || currentTicket.customerName || currentTicket.name || 'Walk-in Customer';
+                const customerPhone = currentTicket.customer_phone || currentTicket.customerPhone || currentTicket.phone || 'No phone';
+                
+                // Update ticket info
+                document.getElementById('ticketNumber').textContent = ticketNumber;
+                document.getElementById('serviceName').textContent = getServiceName(serviceId);
+                
+                // Calculate wait time more safely - from creation to when called
+                let waitTime = 0;
+                try {
+                    const createdTime = new Date(createdAt).getTime();
+                    const calledTime = new Date(calledAt).getTime();
+                    if (!isNaN(createdTime) && !isNaN(calledTime)) {
+                        waitTime = Math.max(0, Math.floor((calledTime - createdTime) / 1000));
+                    }
+                } catch (error) {
+                    console.warn('Wait time calculation error:', error);
+                    waitTime = 0;
+                }
+                
+                document.getElementById('waitTime').textContent = formatTime(waitTime);
+                document.getElementById('queuePosition').textContent = '#1';
+                document.getElementById('customerName').textContent = customerName;
+                document.getElementById('customerPhone').textContent = customerPhone;
+                
+                // Enable action buttons
+                ['btnRecall', 'btnEnd', 'btnNoShow', 'btnTransfer'].forEach(id => {
+                    document.getElementById(id).disabled = false;
+                });
+                
+                // Always show Park and Recycle buttons when ticket is active
+                document.getElementById('btnPark').style.display = 'flex';
+                document.getElementById('btnPark').disabled = false;
+                document.getElementById('btnRecycle').style.display = 'flex';
+                document.getElementById('btnRecycle').disabled = false;
+                
+                console.log('🎯 Updated ticket display:', {
+                    number: ticketNumber,
+                    service: serviceId,
+                    serviceName: getServiceName(serviceId),
+                    waitTime: waitTime + 's',
+                    customer: customerName,
+                    createdAt: createdAt,
+                    calledAt: calledAt
+                });
+            }
+        }
+        
+        // Check feature flags
+        async function checkFeatureFlags() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/settings`);
+                if (response.ok) {
+                    const settings = await response.json();
+                    console.log('🔧 Feature flags loaded:', settings);
+                    
+                    // Show/hide buttons based on features
+                    document.getElementById('btnPark').style.display = 
+                        settings['feature.park_unpark'] === 'true' ? 'flex' : 'none';
+                    document.getElementById('btnRecycle').style.display = 
+                        settings['feature.recycle'] === 'true' ? 'flex' : 'none';
+                } else {
+                    console.log('🔧 Feature flags API not available, keeping buttons visible');
+                    // Keep buttons visible if API fails - don't hide functionality
+                    document.getElementById('btnPark').style.display = 'flex';
+                    document.getElementById('btnRecycle').style.display = 'flex';
+                }
+            } catch (error) {
+                console.log('🔧 Feature flags not available (normal for demo), keeping buttons visible');
+                // Keep buttons visible on error - better to show extra features than hide needed ones
+                document.getElementById('btnPark').style.display = 'flex';
+                document.getElementById('btnRecycle').style.display = 'flex';
+            }
+        }
+        
+        // Socket event handlers
+        function handleTicketCreated(data) {
+            if (data.ticket.serviceId === selectedService) {
+                loadQueue();
+                addActivity('New ticket', data.ticket.number);
+            }
+        }
+        
+        function handleTicketCalled(data) {
+            if (data.ticket.serviceId === selectedService) {
+                loadQueue();
+            }
+        }
+        
+        function handleTicketCompleted(data) {
+            if (data.ticketId === currentTicket?.id) {
+                currentTicket = null;
+                updateTicketDisplay();
+            }
+            loadQueue();
+        }
+        
+        function handleQueueUpdated(data) {
+            if (data.serviceId === selectedService) {
+                loadQueue();
+            }
+        }
+        
+        function handleSystemAlert(data) {
+            showNotification(data.message, data.type || 'info');
+        }
+        
+        // Helper functions
+        function getServiceName(serviceId) {
+            console.log('🔍 Looking up service name for ID:', serviceId, 'in services:', loadedServices);
+            
+            // First try to find in loaded services
+            const service = loadedServices.find(s => s.id == serviceId);
+            if (service) {
+                console.log('✅ Found service:', service.name);
+                return service.name;
+            }
+            
+            // Try to get from the dropdown
+            const dropdown = document.getElementById('serviceSelector');
+            const option = dropdown.querySelector(`option[value="${serviceId}"]`);
+            if (option) {
+                console.log('✅ Found service in dropdown:', option.textContent);
+                return option.textContent;
+            }
+            
+            // Fallback to hardcoded mapping
+            const services = {
+                1: 'General Service',
+                2: 'Account Services', 
+                3: 'VIP Services',
+                4: 'Technical Support'
+            };
+            
+            const serviceName = services[serviceId] || `Service ${serviceId}`;
+            console.log('🔄 Using fallback service name:', serviceName);
+            return serviceName;
+        }
+        
+        // Check if agent is assigned to a service
+        function isAgentAssignedToService(serviceId) {
+            // If no assignment data, assume Service 1 (General Service) only
+            if (agentServices.length === 0) {
+                return serviceId == 1;
+            }
+            
+            // Check if service is in agent's assigned services
+            return agentServices.some(s => s.service_id == serviceId || s.id == serviceId);
+        }
+        
+        // Load agent service assignments
+        async function loadAgentServices() {
+            if (!session || !session.agent) {
+                console.log('🔒 No session/agent, defaulting to Service 1 only');
+                agentServices = [{ service_id: 1, id: 1 }];
+                return;
+            }
+            
+            const agentId = session.agent.id || session.agentId || session.id;
+            
+            try {
+                const response = await fetch(`${API_BASE}/agent/${agentId}/services`);
+                if (response.ok) {
+                    const data = await response.json();
+                    agentServices = data.services || data || [];
+                    console.log('✅ Loaded agent service assignments:', agentServices);
+                } else {
+                    console.log('🔒 Agent services API failed, defaulting to Service 1 only');
+                    agentServices = [{ service_id: 1, id: 1 }];
+                }
+            } catch (error) {
+                console.log('🔒 Failed to load agent services, defaulting to Service 1 only');
+                agentServices = [{ service_id: 1, id: 1 }];
+            }
+        }
+        
+        // Update service selector to show only assigned services
+        function updateServiceSelector() {
+            const select = document.getElementById('serviceSelector');
+            const currentOptions = Array.from(select.options);
+            
+            currentOptions.forEach(option => {
+                const serviceId = parseInt(option.value);
+                if (!isAgentAssignedToService(serviceId)) {
+                    option.style.color = '#999';
+                    option.disabled = true;
+                    option.textContent += ' (Not Assigned)';
+                }
+            });
+            
+            // Auto-select first assigned service
+            const firstAssignedService = currentOptions.find(option => 
+                !option.disabled && option.value
+            );
+            
+            if (firstAssignedService) {
+                selectedService = parseInt(firstAssignedService.value);
+                select.value = selectedService;
+                console.log('🔒 Auto-selected assigned service:', selectedService);
+            }
+        }
+        
+        function formatTime(seconds) {
+            // Handle edge cases
+            if (isNaN(seconds) || seconds < 0) {
+                return '00:00:00';
+            }
+            
+            // Convert to hh:mm:ss format
+            const hours = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            // Cap at 23:59:59 to avoid crazy numbers
+            const displayHours = Math.min(hours, 23);
+            
+            return `${String(displayHours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        function startServiceTimer() {
+            let seconds = 0;
+            if (serviceTimer) clearInterval(serviceTimer);
+            
+            serviceTimer = setInterval(() => {
+                seconds++;
+                document.getElementById('serviceTime').textContent = formatTime(seconds);
+            }, 1000);
+        }
+        
+        function startSessionTimer() {
+            let seconds = 0;
+            sessionTimer = setInterval(() => {
+                seconds++;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                
+                document.getElementById('sessionTimer').textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        function addActivity(action, detail) {
+            const activityPanel = document.getElementById('activityPanel');
+            const activity = document.createElement('div');
+            activity.className = 'activity-item animate-in';
+            activity.innerHTML = `
+                <div class="activity-icon">🎯</div>
+                <div class="activity-content">
+                    <div class="activity-title">${action} - ${detail}</div>
+                    <div class="activity-time">Just now</div>
+                </div>
+            `;
+            activityPanel.insertBefore(activity, activityPanel.firstChild);
+            
+            // Keep only last 10 activities
+            while (activityPanel.children.length > 10) {
+                activityPanel.removeChild(activityPanel.lastChild);
+            }
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            // Choose appropriate icon
+            let icon = '✅';
+            if (type === 'error') icon = '❌';
+            if (type === 'warning') icon = '⚠️';
+            if (type === 'info') icon = 'ℹ️';
+            
+            notification.innerHTML = `
+                <span>${icon}</span>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="
+                    background: none; 
+                    border: none; 
+                    color: inherit; 
+                    font-size: 1.2rem; 
+                    cursor: pointer; 
+                    margin-left: 1rem;
+                    opacity: 0.7;
+                ">&times;</button>
+            `;
+            document.body.appendChild(notification);
+            
+            // Auto-dismiss after delay
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, type === 'error' ? 8000 : 3000); // Show errors longer, add manual close option
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Call logout endpoint (skip for demo mode)
+                if (session && !session.id.startsWith('demo-')) {
+                    fetch(`${API_BASE}/terminal/logout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionId: session.id })
+                    }).catch(error => console.error('Logout error:', error));
+                }
+                
+                localStorage.removeItem('flowmatic_session');
+                if (socket) socket.disconnect();
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

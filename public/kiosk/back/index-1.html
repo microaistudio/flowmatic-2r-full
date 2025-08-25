@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Kiosk - Layout 1 (Fixed)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #faf9f6;
+            min-height: 100vh;
+            overflow-y: auto; /* Changed from hidden to auto */
+            position: relative;
+        }
+
+        .background-pattern {
+            position: fixed; /* Changed from absolute to fixed */
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(134, 185, 127, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 160, 85, 0.03) 0%, transparent 50%);
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh; /* Changed from height to min-height */
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 24px;
+            padding: 2rem 3rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.04),
+                0 1px 3px rgba(0, 0, 0, 0.06);
+            flex-shrink: 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(134, 185, 127, 0.25);
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            letter-spacing: -0.5px;
+        }
+
+        .time-display {
+            text-align: right;
+        }
+
+        .current-time {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 0.25rem;
+        }
+
+        .current-date {
+            font-size: 0.95rem;
+            color: #6b6b6b;
+            font-weight: 400;
+        }
+
+        .lang-selector {
+            display: flex;
+            gap: 0;
+            background: #f5f4f1;
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .lang-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: #6b6b6b;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .lang-btn:hover {
+            background: rgba(134, 185, 127, 0.1);
+            color: #2c2c2c;
+        }
+
+        .lang-btn.active {
+            background: #86b97f;
+            color: white;
+            box-shadow: 0 2px 6px rgba(134, 185, 127, 0.25);
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem; /* Added margin bottom */
+        }
+
+        .welcome-section {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.04),
+                0 1px 3px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: #6b6b6b;
+            font-weight: 400;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .service-card {
+            background: #ffffff;
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            padding: 2.5rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            min-height: 180px;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            border-color: #86b97f;
+            box-shadow: 
+                0 8px 25px rgba(134, 185, 127, 0.15),
+                0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .service-card.general {
+            border-color: #86b97f;
+            background: linear-gradient(135deg, rgba(134, 185, 127, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .service-card.account {
+            border-color: #ff9f54;
+            background: linear-gradient(135deg, rgba(255, 159, 84, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .service-card.vip {
+            border-color: #9b8ce8;
+            background: linear-gradient(135deg, rgba(155, 140, 232, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .service-card.technical {
+            border-color: #64a8d1;
+            background: linear-gradient(135deg, rgba(100, 168, 209, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .service-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            font-size: 1.8rem;
+        }
+
+        .service-card.general .service-icon-wrapper {
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+            color: white;
+        }
+
+        .service-card.account .service-icon-wrapper {
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+            color: white;
+        }
+
+        .service-card.vip .service-icon-wrapper {
+            background: linear-gradient(135deg, #9b8ce8 0%, #8b7ed8 100%);
+            color: white;
+        }
+
+        .service-card.technical .service-icon-wrapper {
+            background: linear-gradient(135deg, #64a8d1 0%, #5a96bb 100%);
+            color: white;
+        }
+
+        .service-name {
+            color: #2c2c2c;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.25px;
+        }
+
+        .service-desc {
+            color: #6b6b6b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        .queue-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.06);
+            color: #4a4a4a;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.04),
+                0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-title {
+            color: #2c2c2c;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            font-size: 1.1rem;
+        }
+
+        .queue-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f5f4f1;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #6b6b6b;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .stat-value {
+            color: #2c2c2c;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #6b6b6b;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #86b97f;
+        }
+
+        .help-section {
+            text-align: center;
+        }
+
+        .help-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 159, 84, 0.25);
+        }
+
+        .help-title {
+            color: #2c2c2c;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .help-text {
+            color: #6b6b6b;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem 0;
+            color: #9b9b9b;
+            font-size: 0.8rem;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .footer-divider {
+            width: 1px;
+            height: 12px;
+            background: #e8e7e4;
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .error {
+            background: #ffe6e6 !important;
+            border-color: #ffb3b3 !important;
+        }
+
+        /* Ticket generation modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-display {
+            background: #f8f9f6;
+            border: 2px solid #86b97f;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .ticket-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #86b97f;
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-info {
+            color: #6b6b6b;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .ticket-info div {
+            margin: 0.5rem 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #86b97f;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f5f4f1;
+            color: #6b6b6b;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo-icon">📋</div>
+                <div class="logo">FlowMatic</div>
+            </div>
+            
+            <div class="time-display">
+                <div class="current-time" id="currentTime">10:30 AM</div>
+                <div class="current-date" id="currentDate">Thursday, June 26</div>
+            </div>
+            
+            <div class="lang-selector">
+                <button class="lang-btn active" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="th">TH</button>
+                <button class="lang-btn" data-lang="hi">HI</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-header">
+                    <h1 class="welcome-title">Welcome!</h1>
+                    <p class="welcome-subtitle">Please select your service to get started</p>
+                </div>
+                
+                <div class="services-grid" id="servicesGrid">
+                    <!-- Services will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Queue Status -->
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">📊</span>
+                        Current Status
+                    </h3>
+                    <div class="queue-stats" id="queueStats">
+                        <!-- Stats will be loaded dynamically -->
+                    </div>
+                    
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <div class="status-dot"></div>
+                            <span>System Online</span>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-dot" style="background: #ff9f54;"></div>
+                            <span>Printer Ready</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Section -->
+                <div class="info-card help-section">
+                    <div class="help-icon">❓</div>
+                    <div class="help-title">Need Assistance?</div>
+                    <div class="help-text">
+                        Touch any service above to begin.<br>
+                        For help, please contact reception.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>Powered by FlowMatic</span>
+            <div class="footer-divider"></div>
+            <span>Version 2.0</span>
+            <div class="footer-divider"></div>
+            <span>Touch to interact</span>
+        </div>
+    </div>
+
+    <!-- Ticket Generation Modal -->
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-content">
+            <div class="modal-title">Your Ticket</div>
+            <div class="ticket-display">
+                <div class="ticket-number" id="ticketNumber">A001</div>
+                <div class="ticket-info" id="ticketInfo">
+                    <div>Service: General Service</div>
+                    <div>Estimated Wait: 15 minutes</div>
+                    <div>Position in Queue: 5</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="printTicket()">Print Ticket</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class KioskApp {
+            constructor() {
+                this.socket = null;
+                this.services = [];
+                this.currentLanguage = 'en';
+                this.apiBase = '/api';
+                
+                this.init();
+            }
+
+            async init() {
+                try {
+                    // Initialize Socket.IO
+                    this.initSocket();
+                    
+                    // Load services
+                    await this.loadServices();
+                    
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    
+                    // Start time updates
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    
+                } catch (error) {
+                    console.error('Failed to initialize kiosk:', error);
+                    this.showError('System initialization failed. Please contact support.');
+                }
+            }
+
+            initSocket() {
+                this.socket = io();
+                
+                this.socket.on('connect', () => {
+                    console.log('Connected to server');
+                    this.socket.emit('join-all'); // Monitor all updates
+                });
+
+                this.socket.on('ticket-created', (data) => {
+                    this.updateQueueStats();
+                    this.updateServiceQueues();
+                });
+
+                this.socket.on('queue-updated', (data) => {
+                    this.updateQueueStats();
+                    this.updateServiceQueues();
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('Disconnected from server');
+                });
+            }
+
+            async loadServices() {
+                try {
+                    const response = await fetch(`${this.apiBase}/kiosk/services`);
+                    if (!response.ok) throw new Error('Failed to load services');
+                    
+                    const data = await response.json();
+                    this.services = data.services || data; // Handle different response formats
+                    
+                    this.renderServices();
+                    this.updateQueueStats();
+                    
+                } catch (error) {
+                    console.error('Error loading services:', error);
+                    this.showError('Failed to load services');
+                }
+            }
+
+            renderServices() {
+                const grid = document.getElementById('servicesGrid');
+                
+                const serviceClasses = ['general', 'account', 'vip', 'technical'];
+                const serviceIcons = ['🏢', '💳', '⭐', '🔧'];
+                
+                grid.innerHTML = this.services.map((service, index) => `
+                    <div class="service-card ${serviceClasses[index] || 'general'}" 
+                         data-service-id="${service.id}"
+                         onclick="app.selectService(${service.id})">
+                        <div class="queue-indicator">${service.queueCount || 0} waiting</div>
+                        <div class="service-icon-wrapper">${serviceIcons[index] || '🏢'}</div>
+                        <div class="service-name">${service.name}</div>
+                        <div class="service-desc">${service.description}</div>
+                    </div>
+                `).join('');
+            }
+
+            updateQueueStats() {
+                const statsContainer = document.getElementById('queueStats');
+                if (!this.services.length) return;
+
+                const totalWaiting = this.services.reduce((sum, service) => sum + (service.queueCount || 0), 0);
+                const totalServing = this.services.reduce((sum, service) => sum + (service.servingCount || 0), 0);
+                const avgWait = Math.round(this.services.reduce((sum, service) => sum + (service.avgWaitTime || 0), 0) / this.services.length);
+
+                statsContainer.innerHTML = `
+                    <div class="stat-row">
+                        <span class="stat-label">Total waiting</span>
+                        <span class="stat-value">${totalWaiting}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Now serving</span>
+                        <span class="stat-value">${totalServing}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Average wait</span>
+                        <span class="stat-value">${avgWait} min</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">System uptime</span>
+                        <span class="stat-value">98%</span>
+                    </div>
+                `;
+            }
+
+            async updateServiceQueues() {
+                try {
+                    // Update individual service queue counts
+                    const response = await fetch(`${this.apiBase}/kiosk/services`);
+                    if (!response.ok) return;
+                    
+                    const data = await response.json();
+                    this.services = data.services || data;
+                    
+                    // Update queue indicators
+                    this.services.forEach((service, index) => {
+                        const card = document.querySelector(`[data-service-id="${service.id}"]`);
+                        if (card) {
+                            const indicator = card.querySelector('.queue-indicator');
+                            if (indicator) {
+                                indicator.textContent = `${service.queueCount || 0} waiting`;
+                            }
+                        }
+                    });
+                    
+                    this.updateQueueStats();
+                    
+                } catch (error) {
+                    console.error('Error updating service queues:', error);
+                }
+            }
+
+            async selectService(serviceId) {
+                try {
+                    const service = this.services.find(s => s.id === serviceId);
+                    if (!service) throw new Error('Service not found');
+
+                    // Show loading state
+                    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    card.classList.add('loading');
+
+                    // Create ticket
+                    const response = await fetch(`${this.apiBase}/kiosk/tickets`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            serviceId: serviceId,
+                            priority: 0
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Failed to create ticket');
+
+                    const responseData = await response.json();
+                    
+                    // Handle response with success wrapper
+                    if (responseData.success && responseData.ticket) {
+                        this.showTicketModal(responseData.ticket, service);
+                        await this.loadServices(); // Refresh queue counts
+                    } else {
+                        throw new Error('Invalid ticket response from server');
+                    }
+
+                } catch (error) {
+                    console.error('Error selecting service:', error);
+                    this.showError('Failed to create ticket. Please try again.');
+                } finally {
+                    // Remove loading state
+                    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    card?.classList.remove('loading');
+                }
+            }
+
+            showTicketModal(ticket, service) {
+                // Handle both camelCase and snake_case field names from backend
+                const ticketNumber = ticket.ticketNumber || ticket.ticket_number || ticket.number || 'Unknown';
+                const estimatedWait = ticket.estimatedWait || ticket.estimated_wait || 900;
+                const queuePosition = ticket.queuePosition || ticket.queue_position || ticket.position;
+                
+                document.getElementById('ticketNumber').textContent = ticketNumber;
+                
+                const waitMinutes = Math.round(estimatedWait / 60);
+                const position = queuePosition || this.services.find(s => s.id === service.id)?.queueCount || 'N/A';
+                
+                document.getElementById('ticketInfo').innerHTML = `
+                    <div>Service: <strong>${service.name}</strong></div>
+                    <div>Estimated Wait: <strong>${waitMinutes} minutes</strong></div>
+                    <div>Position in Queue: <strong>${position}</strong></div>
+                    <div>Created: <strong>${new Date(ticket.createdAt || ticket.created_at || Date.now()).toLocaleTimeString()}</strong></div>
+                `;
+
+                document.getElementById('ticketModal').style.display = 'flex';
+            }
+
+            setupEventListeners() {
+                // Language selection
+                document.querySelectorAll('.lang-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentLanguage = btn.dataset.lang;
+                    });
+                });
+
+                // Close modal on background click
+                document.getElementById('ticketModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'ticketModal') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                const dateString = now.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                document.getElementById('currentTime').textContent = timeString;
+                document.getElementById('currentDate').textContent = dateString;
+            }
+
+            showError(message) {
+                alert(`⚠️ ${message}`);
+            }
+
+            closeModal() {
+                document.getElementById('ticketModal').style.display = 'none';
+            }
+
+            printTicket() {
+                // Implement print functionality
+                window.print();
+                this.closeModal();
+            }
+        }
+
+        // Global functions for modal
+        function closeModal() {
+            app.closeModal();
+        }
+
+        function printTicket() {
+            app.printTicket();
+        }
+
+        // Initialize app
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new KioskApp();
+        });
+    </script>
+</body>
+</html>

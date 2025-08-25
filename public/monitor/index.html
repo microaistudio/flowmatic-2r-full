@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Monitor - Amway Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f7f5f3; /* Anthropic Cream */
+            color: #374151; /* Charcoal */
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); /* Deep Navy */
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+            flex-shrink: 0;
+            height: 80px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .amway-logo {
+            background: #ffffff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.8rem;
+            color: #1e3a8a;
+            letter-spacing: 1px;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .datetime {
+            text-align: right;
+            color: #ffffff;
+        }
+
+        .time {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .date {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .lang-btn.active {
+            background: #fbbf24; /* Soft Gold */
+            border-color: #fbbf24;
+            color: #1e3a8a;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            padding: 25px;
+            min-height: 0;
+            overflow: hidden;
+            height: calc(100vh - 140px); /* 80px header + 60px bottom */
+        }
+
+        /* Left Panel */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .last-called {
+            background: linear-gradient(145deg, #34d399 0%, #10b981 100%); /* Mint Green */
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            color: #ffffff;
+            box-shadow: 0 8px 30px rgba(52, 211, 153, 0.3);
+            flex: 0 0 35%; /* Smaller proportion */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        .last-called-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .last-called-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 15px 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: 4px;
+        }
+
+        .last-called-counter {
+            font-size: 1.6rem;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+
+        .latest-called {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e5e7eb;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .latest-called-title {
+            background: #a78bfa; /* Light Purple */
+            color: #ffffff;
+            font-size: 1.6rem;
+            font-weight: bold;
+            padding: 12px 15px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 18px 18px 0 0;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .latest-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .latest-table th {
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 2px solid #d1d5db;
+        }
+
+        .latest-table td {
+            font-size: 1.2rem;
+            font-weight: 500;
+            padding: 15px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .latest-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .latest-table tr:hover {
+            background: #f3f4f6;
+            transform: scale(1.02);
+            transition: all 0.2s;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .now-serving-title {
+            background: #1e3a8a; /* Deep Navy */
+            color: #ffffff;
+            font-size: 2.2rem;
+            font-weight: bold;
+            padding: 20px;
+            margin: -25px -25px 25px -25px;
+            border-radius: 18px 18px 0 0;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .serving-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+        }
+
+        .serving-table th {
+            background: #a78bfa; /* Light Purple */
+            color: #ffffff;
+            font-size: 1.6rem;
+            font-weight: 600;
+            padding: 20px;
+            border-bottom: 3px solid #8b5cf6;
+        }
+
+        .serving-table td {
+            font-size: 1.8rem;
+            font-weight: 600;
+            padding: 25px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .serving-table tr:nth-child(even) {
+            background: #faf5ff;
+        }
+
+        .serving-table tr.serving {
+            background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%); /* Soft Gold */
+            color: #1e3a8a;
+            animation: serving-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes serving-glow {
+            0% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+            100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
+        }
+
+        .counter-name {
+            font-weight: 700;
+        }
+
+        .ticket-number {
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        /* Bottom Message */
+        .bottom-message {
+            background: #1e3a8a; /* Deep Navy */
+            color: #ffffff;
+            text-align: center;
+            padding: 15px 20px;
+            font-size: 1.8rem;
+            font-weight: 500;
+            flex-shrink: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* NOW CALLING POPUP - Amway Style */
+        .now-calling-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #34d399 0%, #10b981 100%); /* Mint Green - NO TRANSPARENCY */
+            border: 4px solid #ffffff;
+            border-radius: 30px;
+            padding: 40px 50px;
+            box-shadow: 
+                0 30px 80px rgba(0,0,0,0.4),
+                0 0 100px rgba(52, 211, 153, 0.6);
+            z-index: 2000;
+            text-align: center;
+            /* 15% SMALLER + 16:9 ASPECT RATIO */
+            width: 595px;
+            height: 334px;
+            display: none;
+            color: #ffffff;
+        }
+
+        .now-calling-popup.show {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .now-calling-popup.blinking {
+            animation: amway-blink 0.8s ease-in-out infinite;
+        }
+
+        .now-calling-popup.static {
+            animation: amway-glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes amway-blink {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                background: linear-gradient(145deg, #34d399 0%, #10b981 100%);
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.4),
+                    0 0 100px rgba(52, 211, 153, 0.8);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.05);
+                background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+                box-shadow: 
+                    0 35px 90px rgba(0,0,0,0.5),
+                    0 0 150px rgba(251, 191, 36, 0.9);
+            }
+        }
+
+        @keyframes amway-glow {
+            0% { 
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.4),
+                    0 0 100px rgba(52, 211, 153, 0.6);
+            }
+            100% { 
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.4),
+                    0 0 150px rgba(52, 211, 153, 0.9),
+                    0 0 300px rgba(52, 211, 153, 0.4);
+            }
+        }
+
+        .popup-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: 3px;
+            color: #ffffff;
+            /* SOLID BOX FOR NOW CALLING */
+            display: inline-block;
+            padding: 12px 25px;
+            background: #1e3a8a; /* Deep Navy - solid */
+            border-radius: 15px;
+            border: 2px solid #ffffff;
+        }
+
+        .popup-number-label {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .popup-ticket {
+            font-size: 4rem;
+            font-weight: 900;
+            margin: 15px 0;
+            text-shadow: 0 6px 30px rgba(0,0,0,0.4);
+            letter-spacing: 4px;
+            font-family: 'Arial Black', Arial, sans-serif;
+        }
+
+        .popup-go-to {
+            font-size: 2rem;
+            margin: 15px 0 8px 0;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .popup-counter {
+            font-size: 2.8rem;
+            font-weight: bold;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            /* SOLID BOX FOR COUNTER NUMBER */
+            display: inline-block;
+            padding: 15px 30px;
+            background: #a78bfa; /* Light Purple - solid */
+            border-radius: 15px;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+        }
+
+        /* Status Message */
+        .status-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e3a8a;
+            color: #ffffff;
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #34d399;
+            animation: status-blink 2s infinite;
+        }
+
+        @keyframes status-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .status-indicator.disconnected {
+            background: #ef4444;
+            animation: none;
+        }
+
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            top: 100px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            max-width: 350px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 2px solid #a78bfa;
+            z-index: 1000;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            top: 100px;
+            left: 15px;
+            background: #a78bfa;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            z-index: 1001;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .logo {
+                font-size: 1.8rem;
+            }
+            .amway-logo {
+                font-size: 1.4rem;
+                padding: 6px 12px;
+            }
+            .main-content {
+                gap: 20px;
+                padding: 20px;
+                height: calc(100vh - 140px);
+            }
+            .now-calling-popup {
+                width: 500px;
+                height: 280px;
+            }
+            .popup-ticket {
+                font-size: 3.5rem;
+            }
+            .popup-title {
+                font-size: 1.8rem;
+            }
+            .popup-counter {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .header {
+                padding: 10px 15px;
+                flex-direction: column;
+                gap: 10px;
+                height: 120px;
+            }
+            .logo-section {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+            .header-right {
+                gap: 15px;
+            }
+            .logo {
+                font-size: 1.5rem;
+            }
+            .amway-logo {
+                font-size: 1.2rem;
+            }
+            .main-content {
+                height: calc(100vh - 180px);
+                padding: 15px;
+                gap: 15px;
+            }
+            .bottom-message {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Debug Toggle -->
+    <button class="debug-toggle" onclick="toggleDebug()">DEBUG</button>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <div id="debugContent">Debug info will appear here...</div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="amway-logo">Amway</div>
+            <div class="logo">FLOWMATIC SERVICE CENTER</div>
+        </div>
+        <div class="header-right">
+            <!-- Language Selector -->
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="th">TH</button>
+                <button class="lang-btn" data-lang="hi">HI</button>
+            </div>
+            <div class="datetime">
+                <div class="time" id="time">--:--:--</div>
+                <div class="date" id="date">--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Last Called Section -->
+            <div class="last-called" id="lastCalled">
+                <div class="last-called-title" data-i18n="lastCalled">LAST CALLED</div>
+                <div class="last-called-number" id="lastCalledNumber">---</div>
+                <div class="last-called-counter" id="lastCalledCounter">Ready</div>
+            </div>
+
+            <!-- Latest Called Numbers -->
+            <div class="latest-called">
+                <div class="latest-called-title" data-i18n="latestCalledNumbers">Latest Called Numbers</div>
+                <table class="latest-table">
+                    <thead>
+                        <tr>
+                            <th data-i18n="number">Number</th>
+                            <th data-i18n="counter">Counter</th>
+                        </tr>
+                    </thead>
+                    <tbody id="latestCalledTable">
+                        <tr><td colspan="2">No recent calls</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="now-serving-title" data-i18n="nowServing">Now Serving</div>
+            <table class="serving-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="counter">Counter</th>
+                        <th data-i18n="number">Number</th>
+                    </tr>
+                </thead>
+                <tbody id="nowServingTable">
+                    <tr><td>Counter 1</td><td>---</td></tr>
+                    <tr><td>Counter 2</td><td>---</td></tr>
+                    <tr><td>Counter 3</td><td>---</td></tr>
+                    <tr><td>Counter 4</td><td>---</td></tr>
+                    <tr><td>Counter 5</td><td>---</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bottom Message -->
+    <div class="bottom-message">
+        <span data-i18n="pleaseStayReady">Please Stay Ready</span>
+    </div>
+
+    <!-- NOW CALLING POPUP -->
+    <div class="now-calling-popup" id="nowCallingPopup">
+        <div class="popup-title" data-i18n="nowCalling">NOW CALLING</div>
+        <div class="popup-number-label" data-i18n="number">Number</div>
+        <div class="popup-ticket" id="popupTicketNumber">A123</div>
+        <div class="popup-go-to" data-i18n="pleaseGoTo">Please go to</div>
+        <div class="popup-counter" id="popupCounter">Counter 1</div>
+    </div>
+
+    <!-- Status Message -->
+    <div class="status-message">
+        <div class="status-indicator disconnected" id="statusIndicator"></div>
+        <span id="statusText">Initializing...</span>
+    </div>
+
+    <!-- Socket.IO Script -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // API Configuration
+        const API_BASE = window.location.origin + '/api';
+        
+        console.log('🚀 FlowMatic Amway Monitor - Using API:', API_BASE);
+        
+        // Global variables
+        let currentLang = 'en';
+        let socket = null;
+        let countersData = {};
+        let servicesData = {};
+        let voiceEnabled = true;
+        let isConnected = false;
+        let debugLog = [];
+        let debugEnabled = false;
+        let recentCalls = []; // Track recent calls for latest called table
+        
+        // Debug logging function
+        function addDebugLog(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLog.push(logEntry);
+            if (data) {
+                debugLog.push(`  Data: ${JSON.stringify(data, null, 2)}`);
+            }
+            
+            if (debugLog.length > 40) {
+                debugLog = debugLog.slice(-40);
+            }
+            
+            if (debugEnabled) {
+                updateDebugPanel();
+            }
+            
+            console.log(logEntry, data || '');
+        }
+        
+        function updateDebugPanel() {
+            const panel = document.getElementById('debugContent');
+            if (panel) {
+                panel.innerHTML = debugLog.join('<br>');
+                panel.scrollTop = panel.scrollHeight;
+            }
+        }
+        
+        window.toggleDebug = function() {
+            debugEnabled = !debugEnabled;
+            const panel = document.getElementById('debugPanel');
+            if (debugEnabled) {
+                panel.classList.add('show');
+                updateDebugPanel();
+            } else {
+                panel.classList.remove('show');
+            }
+        };
+        
+        // Translations
+        const translations = {
+            en: {
+                lastCalled: "LAST CALLED",
+                latestCalledNumbers: "Latest Called Numbers",
+                nowServing: "Now Serving",
+                nowCalling: "NOW CALLING",
+                counter: "Counter",
+                number: "Number",
+                pleaseGoTo: "Please go to",
+                pleaseStayReady: "Please Stay Ready"
+            },
+            th: {
+                lastCalled: "เรียกล่าสุด",
+                latestCalledNumbers: "หมายเลขที่เรียกล่าสุด",
+                nowServing: "กำลังให้บริการ",
+                nowCalling: "กำลังเรียก",
+                counter: "ช่องบริการ",
+                number: "หมายเลข",
+                pleaseGoTo: "โปรดไปที่",
+                pleaseStayReady: "โปรดเตรียมพร้อม"
+            },
+            hi: {
+                lastCalled: "अंतिम कॉल",
+                latestCalledNumbers: "नवीनतम कॉल किए गए नंबर",
+                nowServing: "अब सेवा दे रहे हैं",
+                nowCalling: "अब बुला रहे हैं",
+                counter: "काउंटर",
+                number: "संख्या",
+                pleaseGoTo: "कृपया जाएं",
+                pleaseStayReady: "कृपया तैयार रहें"
+            }
+        };
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            addDebugLog('🚀 FlowMatic Amway Monitor Starting...');
+            
+            if (typeof io === 'undefined') {
+                addDebugLog('❌ Socket.IO not loaded!');
+                showError('Socket.IO library not found. Please check server configuration.');
+                return;
+            }
+            
+            initializeApp();
+        });
+        
+        function initializeApp() {
+            addDebugLog('✅ Initializing FlowMatic Amway Monitor...');
+            initializeClock();
+            initializeLanguage();
+            
+            // Initialize with fallback data
+            loadFallbackData();
+            
+            // Start API testing and socket connection
+            testAPIs();
+            setTimeout(initializeSocket, 500);
+            setTimeout(loadInitialData, 1000);
+            
+            // Set up periodic refresh
+            setInterval(function() {
+                if (isConnected) {
+                    addDebugLog('🔄 Periodic refresh...');
+                    loadInitialData();
+                }
+            }, 30000);
+        }
+        
+        function loadFallbackData() {
+            addDebugLog('🔧 Loading fallback data...');
+            servicesData = {
+                1: { id: 1, name: 'General Service', prefix: 'A', queueCount: 0 },
+                2: { id: 2, name: 'Account Services', prefix: 'B', queueCount: 0 },
+                3: { id: 3, name: 'VIP Services', prefix: 'V', queueCount: 0 },
+                4: { id: 4, name: 'Technical Support', prefix: 'T', queueCount: 0 }
+            };
+            
+            // Initialize 5 counters
+            for (let i = 1; i <= 5; i++) {
+                countersData[i] = {
+                    id: i,
+                    number: i,
+                    name: `Counter ${i}`,
+                    state: 'available',
+                    current_ticket: null
+                };
+            }
+            
+            renderNowServingTable();
+            addDebugLog('✅ Fallback data loaded');
+        }
+        
+        // Clock functionality
+        function initializeClock() {
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('time').textContent = now.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('date').textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+        
+        // Language handling
+        function initializeLanguage() {
+            document.querySelectorAll('.lang-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.lang-btn').forEach(function(b) {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    currentLang = this.dataset.lang;
+                    updateLanguage();
+                });
+            });
+        }
+        
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(function(element) {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.textContent = translations[currentLang][key];
+                }
+            });
+        }
+        
+        // API Testing
+        async function testAPIs() {
+            addDebugLog('🧪 Testing API endpoints...');
+            
+            try {
+                const countersRes = await fetch(API_BASE + '/monitor/counters');
+                addDebugLog(`🏪 Counters API: ${countersRes.status} ${countersRes.ok ? 'OK' : 'FAILED'}`);
+            } catch (e) {
+                addDebugLog(`❌ Counters API failed: ${e.message}`);
+            }
+            
+            try {
+                const servicesRes = await fetch(API_BASE + '/kiosk/services');
+                addDebugLog(`📋 Services API: ${servicesRes.status} ${servicesRes.ok ? 'OK' : 'FAILED'}`);
+            } catch (e) {
+                addDebugLog(`❌ Services API failed: ${e.message}`);
+            }
+        }
+        
+        function showError(message) {
+            addDebugLog(`🚨 Error: ${message}`);
+            document.getElementById('statusText').textContent = 'Error';
+            document.getElementById('statusIndicator').classList.add('disconnected');
+        }
+        
+        // Socket.IO connection
+        function initializeSocket() {
+            addDebugLog('🔌 Connecting to Socket.IO /monitor namespace...');
+            
+            try {
+                socket = io('/monitor');
+                
+                socket.on('connect', function() {
+                    addDebugLog('✅ Socket connected');
+                    addDebugLog(`  Socket ID: ${socket.id}`);
+                    
+                    isConnected = true;
+                    document.getElementById('statusIndicator').classList.remove('disconnected');
+                    document.getElementById('statusText').textContent = 'Connected';
+                    
+                    socket.emit('join-all');
+                });
+                
+                socket.on('disconnect', function(reason) {
+                    addDebugLog(`❌ Socket disconnected: ${reason}`);
+                    isConnected = false;
+                    document.getElementById('statusIndicator').classList.add('disconnected');
+                    document.getElementById('statusText').textContent = 'Disconnected';
+                });
+                
+                socket.on('connect_error', function(error) {
+                    addDebugLog(`❌ Socket connection error: ${error.message}`);
+                    showError('Failed to connect to server');
+                });
+                
+                // Monitor all events
+                socket.onAny(function(eventName, data) {
+                    addDebugLog(`🔥 SOCKET EVENT [${eventName}]`, data);
+                    
+                    if (eventName === 'ticket-called') {
+                        processTicketCalled(data);
+                    } else if (eventName === 'counter-updated') {
+                        processCounterUpdated(data);
+                    } else if (eventName === 'ticket-completed') {
+                        processTicketCompleted(data);
+                    }
+                });
+                
+            } catch (error) {
+                addDebugLog(`❌ Socket initialization error: ${error.message}`);
+                showError('Socket connection failed');
+            }
+        }
+        
+        function processTicketCalled(data) {
+            try {
+                const counter = data.counter;
+                const ticket = data.ticket;
+                
+                if (!counter || !ticket) {
+                    addDebugLog('❌ Missing counter or ticket data in ticket-called');
+                    return;
+                }
+                
+                const ticketNumber = ticket.ticketNumber || ticket.ticket_number;
+                const counterId = counter.id;
+                
+                // Update counter data
+                if (!countersData[counterId]) {
+                    countersData[counterId] = {
+                        id: counterId,
+                        number: counter.number,
+                        name: counter.name || `Counter ${counter.number}`
+                    };
+                }
+                
+                countersData[counterId].current_ticket = {
+                    ticket_number: ticketNumber,
+                    service_id: ticket.serviceId,
+                    service_name: ticket.serviceName
+                };
+                countersData[counterId].state = 'serving';
+                
+                // Add to recent calls (keep last 3)
+                recentCalls.unshift({
+                    number: ticketNumber,
+                    counter: counter.number,
+                    timestamp: new Date()
+                });
+                if (recentCalls.length > 3) {
+                    recentCalls = recentCalls.slice(0, 3);
+                }
+                
+                // Update displays
+                updateLastCalled(ticketNumber, counter.number);
+                renderLatestCalledTable();
+                renderNowServingTable();
+                
+                // Voice announcement
+                if (voiceEnabled && 'speechSynthesis' in window) {
+                    announceTicket(ticketNumber, counter.number);
+                }
+                
+                // Show NOW CALLING popup
+                showNowCallingPopup(ticketNumber, counter.number);
+                
+                addDebugLog('✅ Ticket called processed successfully');
+                
+            } catch (error) {
+                addDebugLog(`❌ Error processing ticket-called: ${error.message}`);
+            }
+        }
+        
+        function processCounterUpdated(data) {
+            try {
+                const counterId = data.counterId || data.counter?.id;
+                
+                if (!counterId) {
+                    addDebugLog('❌ No counter ID found in counter-updated event');
+                    return;
+                }
+                
+                if (!countersData[counterId]) {
+                    countersData[counterId] = {
+                        id: counterId,
+                        number: counterId,
+                        name: `Counter ${counterId}`
+                    };
+                }
+                
+                const newStatus = data.status || 'available';
+                countersData[counterId].state = newStatus;
+                
+                if (data.currentTicket) {
+                    countersData[counterId].current_ticket = data.currentTicket;
+                } else if (newStatus === 'available') {
+                    countersData[counterId].current_ticket = null;
+                }
+                
+                renderNowServingTable();
+                addDebugLog('✅ Counter status updated');
+                
+            } catch (error) {
+                addDebugLog(`❌ Error processing counter-updated: ${error.message}`);
+            }
+        }
+        
+        function processTicketCompleted(data) {
+            try {
+                addDebugLog('✅ Ticket completed');
+                // Counter-updated event should handle clearing
+            } catch (error) {
+                addDebugLog(`❌ Error processing ticket-completed: ${error.message}`);
+            }
+        }
+        
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                addDebugLog('📥 Loading initial data...');
+                
+                // Load counters
+                const countersResponse = await fetch(API_BASE + '/monitor/counters');
+                if (countersResponse.ok) {
+                    const countersResult = await countersResponse.json();
+                    if (countersResult.success && countersResult.data) {
+                        addDebugLog(`✅ Loaded ${countersResult.data.length} counters from API`);
+                        
+                        countersResult.data.forEach(function(counter) {
+                            if (!countersData[counter.id]) {
+                                countersData[counter.id] = counter;
+                            } else {
+                                countersData[counter.id].name = counter.name;
+                                countersData[counter.id].number = counter.number;
+                            }
+                        });
+                        
+                        renderNowServingTable();
+                    }
+                }
+                
+                // Load services
+                const servicesResponse = await fetch(API_BASE + '/kiosk/services');
+                if (servicesResponse.ok) {
+                    const servicesResult = await servicesResponse.json();
+                    if (servicesResult.success && servicesResult.services) {
+                        addDebugLog(`✅ Loaded ${servicesResult.services.length} services from API`);
+                        
+                        servicesResult.services.forEach(function(service) {
+                            if (!servicesData[service.id]) {
+                                servicesData[service.id] = service;
+                            } else {
+                                const existingCount = servicesData[service.id].queueCount || 0;
+                                servicesData[service.id] = { ...service, queueCount: existingCount };
+                            }
+                        });
+                    }
+                }
+                
+            } catch (error) {
+                addDebugLog(`❌ Error loading initial data: ${error.message}`);
+            }
+        }
+        
+        // Update last called section
+        function updateLastCalled(ticketNumber, counterNumber) {
+            document.getElementById('lastCalledNumber').textContent = ticketNumber;
+            document.getElementById('lastCalledCounter').textContent = `At Counter ${counterNumber}`;
+        }
+        
+        // Render latest called table
+        function renderLatestCalledTable() {
+            const tableBody = document.getElementById('latestCalledTable');
+            
+            if (recentCalls.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="2">No recent calls</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = recentCalls.slice(0, 3).map(function(call) {
+                return `<tr><td>${call.number}</td><td>Counter ${call.counter}</td></tr>`;
+            }).join('');
+        }
+        
+        // Render now serving table
+        function renderNowServingTable() {
+            const tableBody = document.getElementById('nowServingTable');
+            
+            let rows = '';
+            for (let i = 1; i <= 5; i++) {
+                const counter = countersData[i];
+                const ticket = counter?.current_ticket;
+                const ticketNumber = ticket?.ticket_number || ticket?.ticketNumber || '---';
+                const isServing = counter?.state === 'serving' && ticketNumber !== '---';
+                
+                rows += `
+                    <tr ${isServing ? 'class="serving"' : ''}>
+                        <td class="counter-name">Counter ${i}</td>
+                        <td class="ticket-number">${ticketNumber}</td>
+                    </tr>
+                `;
+            }
+            
+            tableBody.innerHTML = rows;
+        }
+        
+        // Voice announcement
+        function announceTicket(ticketNumber, counterNumber) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+            
+            try {
+                const utterance = new SpeechSynthesisUtterance();
+                utterance.text = `Ticket ${ticketNumber} to counter ${counterNumber}`;
+                utterance.rate = 0.9;
+                utterance.volume = 0.8;
+                speechSynthesis.speak(utterance);
+                addDebugLog(`🔊 Voice announcement: ${utterance.text}`);
+            } catch (error) {
+                addDebugLog(`❌ Voice announcement failed: ${error.message}`);
+            }
+        }
+        
+        // NOW CALLING POPUP - Amway Style
+        function showNowCallingPopup(ticketNumber, counterNumber) {
+            addDebugLog(`🚨 Showing NOW CALLING popup: ${ticketNumber} → Counter ${counterNumber}`);
+            
+            const popup = document.getElementById('nowCallingPopup');
+            const ticketEl = document.getElementById('popupTicketNumber');
+            const counterEl = document.getElementById('popupCounter');
+            
+            if (!popup || !ticketEl || !counterEl) {
+                addDebugLog('❌ Popup elements not found');
+                return;
+            }
+            
+            // Set content
+            ticketEl.textContent = ticketNumber;
+            counterEl.textContent = `Counter ${counterNumber}`;
+            
+            // Show popup with blinking animation
+            popup.classList.add('show', 'blinking');
+            addDebugLog('  Phase 1: Blinking for 4 seconds...');
+            
+            // After 4 seconds, stop blinking and make it static with glow
+            setTimeout(function() {
+                popup.classList.remove('blinking');
+                popup.classList.add('static');
+                addDebugLog('  Phase 2: Static glow for 4 seconds...');
+                
+                // After another 4 seconds, hide popup with fade
+                setTimeout(function() {
+                    popup.style.transition = 'all 0.5s ease-out';
+                    popup.style.transform = 'translate(-50%, -50%) scale(0.9)';
+                    popup.style.opacity = '0';
+                    
+                    setTimeout(function() {
+                        popup.classList.remove('show', 'static');
+                        popup.style.transition = '';
+                        popup.style.transform = '';
+                        popup.style.opacity = '';
+                        addDebugLog('  Phase 3: Popup hidden');
+                    }, 500);
+                }, 4000);
+            }, 4000);
+        }
+        
+        // Debug functions
+        window.testPopup = function() {
+            addDebugLog('🧪 Testing popup...');
+            showNowCallingPopup('A999', 1);
+        };
+        
+        window.testCall = function() {
+            addDebugLog('🧪 Testing call...');
+            processTicketCalled({
+                counter: { id: 1, number: 1, name: 'Counter 1' },
+                ticket: { ticketNumber: 'A123', serviceId: 1, serviceName: 'General Service' }
+            });
+        };
+        
+        // Export for debugging
+        window.FlowMaticAmwayMonitor = {
+            countersData: function() { return countersData; },
+            servicesData: function() { return servicesData; },
+            recentCalls: function() { return recentCalls; },
+            socket: function() { return socket; },
+            isConnected: function() { return isConnected; },
+            testPopup: window.testPopup,
+            testCall: window.testCall,
+            debugLog: function() { return debugLog; }
+        };
+        
+    })();
+    </script>
+</body>
+</html>

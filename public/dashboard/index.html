@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #faf9f6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            padding: 1rem;
+            gap: 1rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 1.25rem 2rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-symbol {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 3px 12px rgba(134, 185, 127, 0.25);
+        }
+
+        .logo-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            letter-spacing: -0.3px;
+        }
+
+        .logo-subtitle {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .header-stat {
+            text-align: center;
+        }
+
+        .header-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .header-stat-label {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f8f9f6;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #86b97f;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        .status-indicator.offline {
+            background: #ff6b6b;
+            animation: none;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        .header-time {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .header-time-main {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 0.5rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6b6b6b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-button:hover {
+            background: #f5f4f1;
+            color: #4a4a4a;
+        }
+
+        .tab-button.active {
+            background: #86b97f;
+            color: white;
+            box-shadow: 0 2px 8px rgba(134, 185, 127, 0.3);
+        }
+
+        .tab-icon {
+            font-size: 0.9rem;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: #f5f4f1;
+            border: 1px solid #e8e7e4;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6b6b6b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #86b97f;
+            color: white;
+            border-color: #86b97f;
+        }
+
+        .action-btn.primary {
+            background: #86b97f;
+            color: white;
+            border-color: #86b97f;
+        }
+
+        /* Error Messages */
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            border: 1px solid #fcc;
+        }
+
+        .error-message.active {
+            display: flex;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f5f4f1;
+            border-top-color: #86b97f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Service Overview Cards */
+        .services-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-overview-card {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .service-overview-card.general {
+            border-left: 4px solid #86b97f;
+        }
+
+        .service-overview-card.account {
+            border-left: 4px solid #ff9f54;
+        }
+
+        .service-overview-card.vip {
+            border-left: 4px solid #9b8ce8;
+        }
+
+        .service-overview-card.technical {
+            border-left: 4px solid #64a8d1;
+        }
+
+        .service-overview-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-overview-metrics {
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.8rem;
+        }
+
+        .service-overview-metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            margin-top: 0.25rem;
+        }
+
+        /* Queue Tables */
+        .queue-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .queue-section {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .queue-section.general {
+            border-left: 4px solid #86b97f;
+        }
+
+        .queue-section.account {
+            border-left: 4px solid #ff9f54;
+        }
+
+        .queue-section.vip {
+            border-left: 4px solid #9b8ce8;
+        }
+
+        .queue-section.technical {
+            border-left: 4px solid #64a8d1;
+        }
+
+        .queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e8e7e4;
+        }
+
+        .queue-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .queue-icon {
+            font-size: 1rem;
+        }
+
+        .queue-status {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .queue-status.active {
+            background: rgba(134, 185, 127, 0.1);
+            color: #86b97f;
+        }
+
+        .queue-status.busy {
+            background: rgba(255, 159, 84, 0.1);
+            color: #ff9f54;
+        }
+
+        .queue-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .queue-table th {
+            background: #f8f9f6;
+            color: #4a4a4a;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-align: left;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #e8e7e4;
+        }
+
+        .queue-table td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.8rem;
+            color: #4a4a4a;
+        }
+
+        .queue-table tr:hover {
+            background: #f8f9f6;
+        }
+
+        .queue-table tr.serving {
+            background: rgba(134, 185, 127, 0.1);
+            font-weight: 600;
+        }
+
+        .queue-table tr.serving td {
+            color: #2c2c2c;
+        }
+
+        .ticket-number {
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        .ticket-number.serving {
+            color: #86b97f;
+        }
+
+        .wait-time {
+            font-weight: 600;
+        }
+
+        .wait-time.long {
+            color: #ff9f54;
+        }
+
+        .wait-time.very-long {
+            color: #ff6b6b;
+        }
+
+        .customer-name {
+            font-weight: 500;
+        }
+
+        .customer-phone {
+            color: #6b6b6b;
+            font-family: monospace;
+        }
+
+        .no-queue {
+            text-align: center;
+            padding: 2rem;
+            color: #6b6b6b;
+            font-style: italic;
+        }
+
+        /* Coming Soon Sections */
+        .coming-soon-section {
+            text-align: center;
+            padding: 3rem;
+            color: #6b6b6b;
+        }
+
+        .coming-soon-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .coming-soon-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .coming-soon-desc {
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .header {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-stats {
+                justify-content: center;
+            }
+            
+            .queue-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-container {
+                padding: 0.5rem;
+            }
+            
+            .tab-navigation {
+                padding: 0.25rem;
+            }
+            
+            .tab-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo-symbol">📊</div>
+                <div>
+                    <div class="logo-title">FlowMatic Dashboard</div>
+                    <div class="logo-subtitle">Operations Management</div>
+                </div>
+            </div>
+            
+            <div class="header-stats">
+                <div class="header-stat">
+                    <div class="header-stat-value" id="totalServed">-</div>
+                    <div class="header-stat-label">Total Served</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-value" id="inQueue">-</div>
+                    <div class="header-stat-label">In Queue</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-value" id="avgWait">-</div>
+                    <div class="header-stat-label">Avg Wait (min)</div>
+                </div>
+            </div>
+            
+            <div class="system-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span class="status-text" id="statusText">Connecting...</span>
+            </div>
+            
+            <div class="header-time">
+                <div class="header-time-main" id="currentTime">00:00 AM</div>
+                <div id="currentDate">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="operations">
+                <span class="tab-icon">🎯</span>
+                Live Operations
+            </button>
+            <button class="tab-button" data-tab="staff">
+                <span class="tab-icon">👥</span>
+                Staff & Counters
+            </button>
+            <button class="tab-button" data-tab="performance">
+                <span class="tab-icon">📈</span>
+                Performance
+            </button>
+            <button class="tab-button" data-tab="analytics">
+                <span class="tab-icon">📊</span>
+                Visual Analytics
+            </button>
+            <button class="tab-button" data-tab="system">
+                <span class="tab-icon">⚡</span>
+                System Health
+            </button>
+            <button class="tab-button" data-tab="alerts">
+                <span class="tab-icon">🔔</span>
+                Alerts & Reports
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Live Operations Tab -->
+            <div class="tab-panel active" id="operations">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        🎯 Live Queue Operations
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn" onclick="dashboard.refreshData()">Refresh</button>
+                        <button class="action-btn">Export</button>
+                        <button class="action-btn primary">Emergency Reset</button>
+                    </div>
+                </div>
+                
+                <!-- Error Message -->
+                <div class="error-message" id="errorMessage">
+                    <span>⚠️</span>
+                    <span id="errorText"></span>
+                </div>
+                
+                <!-- Service Overview Cards -->
+                <div class="services-overview" id="servicesOverview">
+                    <!-- Service overview cards will be loaded here -->
+                </div>
+                
+                <!-- Detailed Queue Tables -->
+                <div class="queue-sections" id="queueSections">
+                    <!-- Queue tables will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Staff & Counters Tab -->
+            <div class="tab-panel" id="staff">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        👥 Staff & Counter Management
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Add Agent</button>
+                        <button class="action-btn">Manage Breaks</button>
+                        <button class="action-btn primary">Reassign Counters</button>
+                    </div>
+                </div>
+                
+                <div class="coming-soon-section">
+                    <div class="coming-soon-icon">👥</div>
+                    <div class="coming-soon-text">Staff Management Coming Soon</div>
+                    <div class="coming-soon-desc">Real-time agent status, performance tracking, and counter management will be available in Phase 5.</div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-panel" id="performance">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        📈 Performance Analytics
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Daily Report</button>
+                        <button class="action-btn">Weekly Trends</button>
+                        <button class="action-btn primary">Export Data</button>
+                    </div>
+                </div>
+                
+                <div class="coming-soon-section">
+                    <div class="coming-soon-icon">📈</div>
+                    <div class="coming-soon-text">Performance Analytics Coming Soon</div>
+                    <div class="coming-soon-desc">Detailed performance metrics, trend analysis, and reporting tools will be available in Phase 5.</div>
+                </div>
+            </div>
+
+            <!-- Visual Analytics Tab -->
+            <div class="tab-panel" id="analytics">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        📊 Visual Analytics & Insights
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Live View</button>
+                        <button class="action-btn">Historical</button>
+                        <button class="action-btn primary">Full Screen</button>
+                    </div>
+                </div>
+                
+                <div class="coming-soon-section">
+                    <div class="coming-soon-icon">📊</div>
+                    <div class="coming-soon-text">Visual Analytics Coming Soon</div>
+                    <div class="coming-soon-desc">Interactive charts, dials, heatmaps, and visual insights will be available in Phase 5.</div>
+                </div>
+            </div>
+
+            <!-- System Health Tab -->
+            <div class="tab-panel" id="system">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        ⚡ System Health & Monitoring
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Diagnostics</button>
+                        <button class="action-btn">Restart</button>
+                        <button class="action-btn primary">Backup Now</button>
+                    </div>
+                </div>
+                
+                <div class="coming-soon-section">
+                    <div class="coming-soon-icon">⚡</div>
+                    <div class="coming-soon-text">System Health Coming Soon</div>
+                    <div class="coming-soon-desc">Resource monitoring, system diagnostics, and health metrics will be available in Phase 5.</div>
+                </div>
+            </div>
+
+            <!-- Alerts & Reports Tab -->
+            <div class="tab-panel" id="alerts">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        🔔 Alerts & System Reports
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Mark All Read</button>
+                        <button class="action-btn">Alert Settings</button>
+                        <button class="action-btn primary">Generate Report</button>
+                    </div>
+                </div>
+                
+                <div class="coming-soon-section">
+                    <div class="coming-soon-icon">🔔</div>
+                    <div class="coming-soon-text">Alerts & Reports Coming Soon</div>
+                    <div class="coming-soon-desc">Real-time alerts, system notifications, and comprehensive reporting will be available in Phase 5.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class ManagementDashboard {
+            constructor() {
+                this.currentTab = 'operations';
+                this.socket = null;
+                this.services = [];
+                this.connected = false;
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('Initializing Management Dashboard...');
+                
+                try {
+                    this.setupTabNavigation();
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    this.setupActionButtons();
+                    
+                    // Initialize Socket.IO and load data
+                    this.initSocket();
+                    await this.loadDashboardData();
+                    
+                    console.log('Management Dashboard initialized successfully');
+                } catch (error) {
+                    console.error('Failed to initialize dashboard:', error);
+                    this.showError('Dashboard initialization failed. Please refresh the page.');
+                }
+            }
+
+            initSocket() {
+                console.log('Connecting to Socket.IO server...');
+                this.socket = io();
+                
+                this.socket.on('connect', () => {
+                    console.log('Connected to server via Socket.IO');
+                    this.connected = true;
+                    this.updateConnectionStatus('connected');
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('Disconnected from server');
+                    this.connected = false;
+                    this.updateConnectionStatus('disconnected');
+                });
+
+                this.socket.on('connect_error', (error) => {
+                    console.error('Socket connection error:', error);
+                    this.updateConnectionStatus('error');
+                });
+
+                // Real-time event handlers
+                this.socket.on('ticket-created', (data) => {
+                    console.log('Ticket created event:', data);
+                    this.refreshDashboardData();
+                });
+
+                this.socket.on('queue-updated', (data) => {
+                    console.log('Queue updated event:', data);
+                    this.updateServiceMetrics(data);
+                });
+
+                this.socket.on('ticket-called', (data) => {
+                    console.log('Ticket called event:', data);
+                    this.refreshDashboardData();
+                });
+
+                this.socket.on('ticket-completed', (data) => {
+                    console.log('Ticket completed event:', data);
+                    this.refreshDashboardData();
+                });
+            }
+
+            updateConnectionStatus(status) {
+                const indicatorEl = document.getElementById('statusIndicator');
+                const textEl = document.getElementById('statusText');
+
+                switch (status) {
+                    case 'connected':
+                        indicatorEl.className = 'status-indicator';
+                        textEl.textContent = 'All Systems Online';
+                        break;
+                    case 'disconnected':
+                        indicatorEl.className = 'status-indicator offline';
+                        textEl.textContent = 'Connection Lost';
+                        break;
+                    case 'error':
+                        indicatorEl.className = 'status-indicator offline';
+                        textEl.textContent = 'System Error';
+                        break;
+                }
+            }
+
+            async loadDashboardData() {
+                console.log('Loading dashboard data...');
+                this.showLoading(true);
+                
+                try {
+                    // Load services data (real backend)
+                    await this.loadServices();
+                    
+                    // Render overview and queue tables
+                    this.renderServiceOverview();
+                    this.renderQueueTables();
+                    
+                    // Calculate and update header stats from real data
+                    this.updateHeaderStats();
+                    
+                    this.hideError();
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                    this.showError(`Failed to load dashboard data: ${error.message}`);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async loadServices() {
+                console.log('Loading services from backend...');
+                
+                try {
+                    const response = await fetch('/api/kiosk/services');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: Failed to load services`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Services loaded:', data);
+                    
+                    // Handle different response formats
+                    this.services = data.services || data || [];
+                    
+                    if (!Array.isArray(this.services)) {
+                        throw new Error('Invalid services response format');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading services:', error);
+                    this.showError(`Failed to load services: ${error.message}`);
+                    this.services = [];
+                }
+            }
+
+            renderServiceOverview() {
+                const container = document.getElementById('servicesOverview');
+                
+                if (!this.services.length) {
+                    container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #6b6b6b;">No services available</div>';
+                    return;
+                }
+
+                const serviceClasses = ['general', 'account', 'vip', 'technical'];
+                
+                container.innerHTML = this.services.map((service, index) => {
+                    const queueCount = service.queue_count || service.queueCount || 0;
+                    const servingCount = service.serving_count || service.servingCount || 0;
+                    const waitMinutes = Math.round((service.estimated_service_time || 300) / 60);
+                    
+                    return `
+                        <div class="service-overview-card ${serviceClasses[index] || 'general'}">
+                            <div class="service-overview-name">${service.name}</div>
+                            <div class="service-overview-metrics">
+                                <div class="service-overview-metric">
+                                    <div class="metric-value">${queueCount}</div>
+                                    <div class="metric-label">Waiting</div>
+                                </div>
+                                <div class="service-overview-metric">
+                                    <div class="metric-value">${servingCount}</div>
+                                    <div class="metric-label">Serving</div>
+                                </div>
+                                <div class="service-overview-metric">
+                                    <div class="metric-value">${waitMinutes}</div>
+                                    <div class="metric-label">Est. Wait</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderQueueTables() {
+                const container = document.getElementById('queueSections');
+                
+                if (!this.services.length) {
+                    container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #6b6b6b;">No queue data available</div>';
+                    return;
+                }
+
+                const serviceClasses = ['general', 'account', 'vip', 'technical'];
+                const serviceIcons = ['📋', '💼', '⭐', '🔧'];
+                
+                container.innerHTML = this.services.map((service, index) => {
+                    const queueCount = service.queue_count || service.queueCount || 0;
+                    const servingCount = service.serving_count || service.servingCount || 0;
+                    const status = queueCount > 5 ? 'busy' : 'active';
+                    const statusText = queueCount > 5 ? 'Busy' : 'Active';
+                    
+                    // Generate mock queue data for demonstration
+                    const queueData = this.generateMockQueueData(service.prefix || 'A', queueCount, servingCount);
+                    
+                    return `
+                        <div class="queue-section ${serviceClasses[index] || 'general'}">
+                            <div class="queue-header">
+                                <div class="queue-title">
+                                    <span class="queue-icon">${serviceIcons[index] || '📋'}</span>
+                                    ${service.name}
+                                </div>
+                                <div class="queue-status ${status}">${statusText}</div>
+                            </div>
+                            
+                            ${queueData.length > 0 ? `
+                                <table class="queue-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sr.</th>
+                                            <th>Queue #</th>
+                                            <th>Enter Time</th>
+                                            <th>RWT</th>
+                                            <th>Name</th>
+                                            <th>Phone</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${queueData.map((ticket, idx) => `
+                                            <tr class="${ticket.serving ? 'serving' : ''}">
+                                                <td>${idx + 1}</td>
+                                                <td class="ticket-number ${ticket.serving ? 'serving' : ''}">${ticket.number}</td>
+                                                <td>${ticket.enterTime}</td>
+                                                <td class="wait-time ${ticket.waitClass}">${ticket.waitTime}</td>
+                                                <td class="customer-name">${ticket.name}</td>
+                                                <td class="customer-phone">${ticket.phone}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : `
+                                <div class="no-queue">No customers in queue</div>
+                            `}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            generateMockQueueData(prefix, queueCount, servingCount) {
+                const mockNames = ['John Smith', 'Sarah Johnson', 'Mike Chen', 'Lisa Wong', 'David Brown', 'Anna Garcia', 'Tom Wilson', 'Jane Davis', 'Chris Lee', 'Emma Taylor'];
+                const data = [];
+                const baseNumber = Math.floor(Math.random() * 100) + 1;
+                const now = new Date();
+                
+                // Add serving tickets first
+                for (let i = 0; i < servingCount; i++) {
+                    const enterTime = new Date(now - (Math.random() * 30 + 5) * 60000); // 5-35 minutes ago
+                    const waitMinutes = Math.round((now - enterTime) / 60000);
+                    
+                    data.push({
+                        number: `${prefix}${String(baseNumber + i).padStart(3, '0')}`,
+                        enterTime: enterTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        waitTime: `${waitMinutes} min`,
+                        waitClass: waitMinutes > 15 ? 'long' : (waitMinutes > 25 ? 'very-long' : ''),
+                        name: mockNames[Math.floor(Math.random() * mockNames.length)],
+                        phone: `+1-${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}`,
+                        serving: true
+                    });
+                }
+                
+                // Add waiting tickets
+                const maxShow = Math.min(queueCount, 8); // Show max 8 waiting tickets
+                for (let i = 0; i < maxShow; i++) {
+                    const enterTime = new Date(now - Math.random() * 20 * 60000); // 0-20 minutes ago
+                    const waitMinutes = Math.round((now - enterTime) / 60000);
+                    
+                    data.push({
+                        number: `${prefix}${String(baseNumber + servingCount + i + 1).padStart(3, '0')}`,
+                        enterTime: enterTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        waitTime: `${waitMinutes} min`,
+                        waitClass: waitMinutes > 10 ? 'long' : (waitMinutes > 20 ? 'very-long' : ''),
+                        name: mockNames[Math.floor(Math.random() * mockNames.length)],
+                        phone: `+1-${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}`,
+                        serving: false
+                    });
+                }
+                
+                return data;
+            }
+
+            updateHeaderStats() {
+                if (!this.services.length) {
+                    document.getElementById('totalServed').textContent = '-';
+                    document.getElementById('inQueue').textContent = '-';
+                    document.getElementById('avgWait').textContent = '-';
+                    return;
+                }
+
+                // Calculate real statistics from services data
+                const totalInQueue = this.services.reduce((sum, service) => 
+                    sum + (service.queue_count || service.queueCount || 0), 0);
+                
+                const avgWait = this.services.length > 0 
+                    ? Math.round(this.services.reduce((sum, service) => 
+                        sum + (service.estimated_service_time || service.estimatedServiceTime || 300), 0) / this.services.length / 60)
+                    : 0;
+
+                // Mock total served (would come from events/tickets table in real implementation)
+                const mockTotalServed = 49 + Math.floor(Math.random() * 10);
+
+                document.getElementById('totalServed').textContent = mockTotalServed;
+                document.getElementById('inQueue').textContent = totalInQueue;
+                document.getElementById('avgWait').textContent = avgWait;
+            }
+
+            updateServiceMetrics(data) {
+                console.log('Updating service metrics:', data);
+                
+                // Find and update the service
+                const service = this.services.find(s => s.id === data.serviceId);
+                if (service) {
+                    service.queue_count = data.waiting || 0;
+                    service.serving_count = data.serving || 0;
+                    
+                    // Re-render overview and tables
+                    this.renderServiceOverview();
+                    this.renderQueueTables();
+                    
+                    // Update header stats
+                    this.updateHeaderStats();
+                }
+            }
+
+            async refreshDashboardData() {
+                // Refresh all data
+                await this.loadDashboardData();
+            }
+
+            async refreshData() {
+                console.log('Manual refresh triggered');
+                await this.refreshDashboardData();
+            }
+
+            setupTabNavigation() {
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabPanels = document.querySelectorAll('.tab-panel');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const targetTab = e.currentTarget.dataset.tab;
+                        
+                        // Update active button
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        
+                        // Update active panel
+                        tabPanels.forEach(panel => panel.classList.remove('active'));
+                        document.getElementById(targetTab).classList.add('active');
+                        
+                        this.currentTab = targetTab;
+                        console.log(`Switched to ${targetTab} tab`);
+                    });
+                });
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                const dateString = now.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                document.getElementById('currentTime').textContent = timeString;
+                document.getElementById('currentDate').textContent = dateString;
+            }
+
+            setupActionButtons() {
+                document.querySelectorAll('.action-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const action = e.target.textContent.trim();
+                        console.log(`Action clicked: ${action} (Tab: ${this.currentTab})`);
+                        
+                        // Visual feedback
+                        const originalStyle = {
+                            background: e.target.style.background,
+                            color: e.target.style.color,
+                            transform: e.target.style.transform
+                        };
+                        
+                        e.target.style.background = '#86b97f';
+                        e.target.style.color = 'white';
+                        e.target.style.transform = 'scale(0.95)';
+                        
+                        setTimeout(() => {
+                            e.target.style.background = originalStyle.background;
+                            e.target.style.color = originalStyle.color;
+                            e.target.style.transform = originalStyle.transform;
+                        }, 200);
+                        
+                        // Handle specific actions
+                        this.handleAction(action);
+                    });
+                });
+            }
+
+            handleAction(action) {
+                switch(action) {
+                    case 'Emergency Reset':
+                        if (confirm('Emergency reset will clear all queues. Are you sure?')) {
+                            console.log('Emergency reset initiated');
+                            // TODO: Call backend reset endpoint
+                        }
+                        break;
+                    case 'Refresh':
+                        this.refreshData();
+                        break;
+                    case 'Export':
+                        console.log('Exporting current data...');
+                        // TODO: Generate and download report
+                        break;
+                    default:
+                        console.log(`Handling action: ${action}`);
+                }
+            }
+
+            showLoading(show) {
+                const overview = document.getElementById('servicesOverview');
+                const sections = document.getElementById('queueSections');
+                if (show) {
+                    overview.classList.add('loading');
+                    sections.classList.add('loading');
+                } else {
+                    overview.classList.remove('loading');
+                    sections.classList.remove('loading');
+                }
+            }
+
+            showError(message) {
+                console.error('Showing error:', message);
+                const errorEl = document.getElementById('errorMessage');
+                const errorText = document.getElementById('errorText');
+                errorText.textContent = message;
+                errorEl.classList.add('active');
+                
+                // Auto-hide after 10 seconds
+                setTimeout(() => {
+                    errorEl.classList.remove('active');
+                }, 10000);
+            }
+
+            hideError() {
+                document.getElementById('errorMessage').classList.remove('active');
+            }
+        }
+
+        // Initialize dashboard when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing Management Dashboard...');
+            window.dashboard = new ManagementDashboard();
+        });
+    </script>
+</body>
+</html>

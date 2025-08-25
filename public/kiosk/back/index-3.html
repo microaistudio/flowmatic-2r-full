@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Kiosk - Layout 3 (Fixed)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #faf9f6;
+            min-height: 100vh;
+            overflow-y: auto; /* Changed from hidden to auto */
+            position: relative;
+        }
+
+        .container {
+            min-height: 100vh; /* Changed from height to min-height */
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 28px;
+            padding: 1.75rem 2.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            flex-shrink: 0;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .brand-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 4px 16px rgba(134, 185, 127, 0.3);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-tagline {
+            font-size: 0.8rem;
+            color: #86b97f;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.25rem;
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        .welcome-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 0.25rem;
+        }
+
+        .instruction-text {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .language-switcher {
+            display: flex;
+            background: #f8f9f6;
+            border-radius: 16px;
+            padding: 6px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .lang-option {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: none;
+            color: #6b6b6b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 10px;
+        }
+
+        .lang-option.active {
+            background: #86b97f;
+            color: white;
+            box-shadow: 0 2px 8px rgba(134, 185, 127, 0.25);
+        }
+
+        .main-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            margin-bottom: 2rem; /* Added margin bottom */
+        }
+
+        .services-container {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .services-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .services-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .services-subtitle {
+            font-size: 1rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .services-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .service-item {
+            background: #ffffff;
+            border: 2px solid #f5f4f1;
+            border-radius: 20px;
+            padding: 1.75rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .service-item.general {
+            border-left: 6px solid #86b97f;
+        }
+
+        .service-item.general:hover {
+            border-color: #86b97f;
+            background: linear-gradient(135deg, rgba(134, 185, 127, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-item.account {
+            border-left: 6px solid #ff9f54;
+        }
+
+        .service-item.account:hover {
+            border-color: #ff9f54;
+            background: linear-gradient(135deg, rgba(255, 159, 84, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-item.vip {
+            border-left: 6px solid #9b8ce8;
+        }
+
+        .service-item.vip:hover {
+            border-color: #9b8ce8;
+            background: linear-gradient(135deg, rgba(155, 140, 232, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-item.technical {
+            border-left: 6px solid #64a8d1;
+        }
+
+        .service-item.technical:hover {
+            border-color: #64a8d1;
+            background: linear-gradient(135deg, rgba(100, 168, 209, 0.02) 0%, #ffffff 100%);
+        }
+
+        .service-icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .service-item.general .service-icon-circle {
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+        }
+
+        .service-item.account .service-icon-circle {
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+        }
+
+        .service-item.vip .service-icon-circle {
+            background: linear-gradient(135deg, #9b8ce8 0%, #8b7ed8 100%);
+        }
+
+        .service-item.technical .service-icon-circle {
+            background: linear-gradient(135deg, #64a8d1 0%, #5a96bb 100%);
+        }
+
+        .service-details {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .service-content {
+            flex: 1;
+        }
+
+        .service-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-description {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+
+        .queue-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #9b9b9b;
+        }
+
+        .queue-count {
+            background: rgba(44, 44, 44, 0.06);
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .timing-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            padding-left: 1.5rem;
+            border-left: 1px solid #f0f0f0;
+        }
+
+        .timing-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .timing-label {
+            font-weight: 600;
+            color: #9b9b9b;
+            width: 30px;
+        }
+
+        .timing-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2c2c2c;
+            min-width: 50px;
+            text-align: center;
+            background: #f8f9f6;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-panel {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .panel-icon {
+            font-size: 1.1rem;
+        }
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .stat-description {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .efficiency-bar {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .efficiency-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #86b97f 0%, #7ab373 100%);
+            width: 87%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .efficiency-text {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .clock-display {
+            text-align: center;
+        }
+
+        .time-large {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .date-small {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .support-panel {
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .support-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .support-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .support-description {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem 0;
+            color: #9b9b9b;
+            font-size: 0.8rem;
+            font-weight: 500;
+            gap: 2rem;
+            flex-shrink: 0;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Loading and error states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .error {
+            background: #ffe6e6 !important;
+            border-color: #ffb3b3 !important;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-display {
+            background: #f8f9f6;
+            border: 2px solid #86b97f;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .ticket-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #86b97f;
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-info {
+            color: #6b6b6b;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .ticket-info div {
+            margin: 0.5rem 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #86b97f;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f5f4f1;
+            color: #6b6b6b;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="brand-section">
+                <div class="brand-icon">🎯</div>
+                <div class="brand-text">
+                    <div class="brand-name">FlowMatic</div>
+                    <div class="brand-tagline">Queue Management</div>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="welcome-text">Welcome to FlowMatic</div>
+                <div class="instruction-text">Select your preferred service below</div>
+            </div>
+            
+            <div class="language-switcher">
+                <button class="lang-option active" data-lang="en">EN</button>
+                <button class="lang-option" data-lang="th">TH</button>
+                <button class="lang-option" data-lang="hi">HI</button>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Services Container -->
+            <div class="services-container">
+                <div class="services-header">
+                    <h1 class="services-title">Available Services</h1>
+                    <p class="services-subtitle">Touch any service to begin your queue experience</p>
+                </div>
+                
+                <div class="services-list" id="servicesList">
+                    <!-- Services will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Statistics Panel -->
+                <div class="sidebar-panel">
+                    <h3 class="panel-header">
+                        <span class="panel-icon">📊</span>
+                        Live Statistics
+                    </h3>
+                    <div class="statistics-grid" id="statisticsGrid">
+                        <!-- Stats will be loaded dynamically -->
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill"></div>
+                    </div>
+                    <div class="efficiency-text">87% Efficiency Rating</div>
+                </div>
+
+                <!-- Time Panel -->
+                <div class="sidebar-panel clock-display">
+                    <h3 class="panel-header">
+                        <span class="panel-icon">🕐</span>
+                        Current Time
+                    </h3>
+                    <div class="time-large" id="currentTime">10:30 AM</div>
+                    <div class="date-small" id="currentDate">Thursday, June 26, 2025</div>
+                </div>
+
+                <!-- Support Panel -->
+                <div class="sidebar-panel support-panel">
+                    <div class="support-icon">🆘</div>
+                    <div class="support-title">Need Assistance?</div>
+                    <div class="support-description">Our staff is ready to help. Contact reception for immediate support or accessibility assistance.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-info">
+            <div class="footer-item">
+                <span>🔄</span>
+                <span>Real-time updates</span>
+            </div>
+            <div class="footer-item">
+                <span>📱</span>
+                <span>Touch to interact</span>
+            </div>
+            <div class="footer-item">
+                <span>⏱️</span>
+                <span>RWT: Real Wait Time • EWT: Estimated Wait Time</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Modal -->
+    <div class="modal-overlay" id="ticketModal">
+        <div class="modal-content">
+            <div class="modal-title">Your Ticket</div>
+            <div class="ticket-display">
+                <div class="ticket-number" id="ticketNumber">A001</div>
+                <div class="ticket-info" id="ticketInfo">
+                    <div>Service: General Service</div>
+                    <div>Estimated Wait: 15 minutes</div>
+                    <div>Position in Queue: 5</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="printTicket()">Print Ticket</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class KioskApp {
+            constructor() {
+                this.socket = null;
+                this.services = [];
+                this.currentLanguage = 'en';
+                this.apiBase = '/api';
+                
+                this.init();
+            }
+
+            async init() {
+                try {
+                    this.initSocket();
+                    await this.loadServices();
+                    this.setupEventListeners();
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                } catch (error) {
+                    console.error('Failed to initialize kiosk:', error);
+                    this.showError('System initialization failed. Please contact support.');
+                }
+            }
+
+            initSocket() {
+                this.socket = io();
+                
+                this.socket.on('connect', () => {
+                    console.log('Connected to server');
+                    this.socket.emit('join-all');
+                });
+
+                this.socket.on('ticket-created', (data) => {
+                    this.updateServices();
+                    this.updateStatistics();
+                });
+
+                this.socket.on('queue-updated', (data) => {
+                    this.updateServices();
+                    this.updateStatistics();
+                });
+            }
+
+            async loadServices() {
+                try {
+                    const response = await fetch(`${this.apiBase}/kiosk/services`);
+                    if (!response.ok) throw new Error('Failed to load services');
+                    
+                    const data = await response.json();
+                    this.services = data.services || data;
+                    
+                    this.renderServices();
+                    this.updateStatistics();
+                } catch (error) {
+                    console.error('Error loading services:', error);
+                    this.showError('Failed to load services');
+                }
+            }
+
+            renderServices() {
+                const list = document.getElementById('servicesList');
+                const serviceClasses = ['general', 'account', 'vip', 'technical'];
+                const serviceIcons = ['🏢', '💳', '⭐', '🔧'];
+                
+                list.innerHTML = this.services.map((service, index) => `
+                    <div class="service-item ${serviceClasses[index] || 'general'}" 
+                         data-service-id="${service.id}"
+                         onclick="app.selectService(${service.id})">
+                        <div class="service-icon-circle">${serviceIcons[index] || '🏢'}</div>
+                        <div class="service-details">
+                            <div class="service-content">
+                                <div class="service-title">${service.name}</div>
+                                <div class="service-description">${service.description}</div>
+                                <div class="queue-info">
+                                    <span class="queue-count">${service.queueCount || 0} customers waiting</span>
+                                    <span>•</span>
+                                    <span>Currently serving: ${service.currentServing || 'None'}</span>
+                                </div>
+                            </div>
+                            <div class="timing-section">
+                                <div class="timing-row">
+                                    <span class="timing-label">RWT</span>
+                                    <span class="timing-value">${service.realWaitTime || 0} min</span>
+                                </div>
+                                <div class="timing-row">
+                                    <span class="timing-label">EWT</span>
+                                    <span class="timing-value">${service.estimatedWaitTime || 0} min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateStatistics() {
+                const statsContainer = document.getElementById('statisticsGrid');
+                if (!this.services.length) return;
+
+                const totalWaiting = this.services.reduce((sum, service) => sum + (service.queueCount || 0), 0);
+                const totalServing = this.services.reduce((sum, service) => sum + (service.servingCount || 0), 0);
+                const avgWait = Math.round(this.services.reduce((sum, service) => sum + (service.avgWaitTime || 0), 0) / this.services.length);
+
+                statsContainer.innerHTML = `
+                    <div class="stat-box">
+                        <div class="stat-value">${totalWaiting}</div>
+                        <div class="stat-description">Total Waiting</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${totalServing}</div>
+                        <div class="stat-description">Now Serving</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">4.8</div>
+                        <div class="stat-description">Satisfaction</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${avgWait}</div>
+                        <div class="stat-description">Avg Wait (min)</div>
+                    </div>
+                `;
+            }
+
+            async updateServices() {
+                try {
+                    const response = await fetch(`${this.apiBase}/kiosk/services`);
+                    if (!response.ok) return;
+                    
+                    const data = await response.json();
+                    this.services = data.services || data;
+                    
+                    this.services.forEach((service, index) => {
+                        const item = document.querySelector(`[data-service-id="${service.id}"]`);
+                        if (item) {
+                            const queueCount = item.querySelector('.queue-count');
+                            const rwtValue = item.querySelectorAll('.timing-value')[0];
+                            const ewtValue = item.querySelectorAll('.timing-value')[1];
+                            
+                            if (queueCount) queueCount.textContent = `${service.queueCount || 0} customers waiting`;
+                            if (rwtValue) rwtValue.textContent = `${service.realWaitTime || 0} min`;
+                            if (ewtValue) ewtValue.textContent = `${service.estimatedWaitTime || 0} min`;
+                        }
+                    });
+                    
+                    this.updateStatistics();
+                } catch (error) {
+                    console.error('Error updating services:', error);
+                }
+            }
+
+            async selectService(serviceId) {
+                try {
+                    const service = this.services.find(s => s.id === serviceId);
+                    if (!service) throw new Error('Service not found');
+
+                    const item = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    item.classList.add('loading');
+
+                    const response = await fetch(`${this.apiBase}/kiosk/tickets`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            serviceId: serviceId,
+                            priority: 0
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Failed to create ticket');
+
+                    const responseData = await response.json();
+                    
+                    // Handle response with success wrapper
+                    if (responseData.success && responseData.ticket) {
+                        this.showTicketModal(responseData.ticket, service);
+                        await this.loadServices(); // Refresh queue counts
+                    } else {
+                        throw new Error('Invalid ticket response from server');
+                    }
+
+                } catch (error) {
+                    console.error('Error selecting service:', error);
+                    this.showError('Failed to create ticket. Please try again.');
+                } finally {
+                    const item = document.querySelector(`[data-service-id="${serviceId}"]`);
+                    item?.classList.remove('loading');
+                }
+            }
+
+            showTicketModal(ticket, service) {
+                // Handle both camelCase and snake_case field names from backend
+                const ticketNumber = ticket.ticketNumber || ticket.ticket_number || ticket.number || 'Unknown';
+                const estimatedWait = ticket.estimatedWait || ticket.estimated_wait || 900;
+                const queuePosition = ticket.queuePosition || ticket.queue_position || ticket.position;
+                
+                document.getElementById('ticketNumber').textContent = ticketNumber;
+                
+                const waitMinutes = Math.round(estimatedWait / 60);
+                const position = queuePosition || this.services.find(s => s.id === service.id)?.queueCount || 'N/A';
+                
+                document.getElementById('ticketInfo').innerHTML = `
+                    <div>Service: <strong>${service.name}</strong></div>
+                    <div>Estimated Wait: <strong>${waitMinutes} minutes</strong></div>
+                    <div>Position in Queue: <strong>${position}</strong></div>
+                    <div>Created: <strong>${new Date(ticket.createdAt || ticket.created_at || Date.now()).toLocaleTimeString()}</strong></div>
+                `;
+
+                document.getElementById('ticketModal').style.display = 'flex';
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.lang-option').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.lang-option').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.currentLanguage = btn.dataset.lang;
+                    });
+                });
+
+                document.getElementById('ticketModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'ticketModal') {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                const dateString = now.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                document.getElementById('currentTime').textContent = timeString;
+                document.getElementById('currentDate').textContent = dateString;
+            }
+
+            showError(message) {
+                alert(`⚠️ ${message}`);
+            }
+
+            closeModal() {
+                document.getElementById('ticketModal').style.display = 'none';
+            }
+
+            printTicket() {
+                window.print();
+                this.closeModal();
+            }
+        }
+
+        function closeModal() { app.closeModal(); }
+        function printTicket() { app.printTicket(); }
+
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new KioskApp();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Monitor - Professional Display</title>
+    <style>
+        /* PROFESSIONAL DASHBOARD COLOR SCHEME */
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --secondary: #64748b;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --surface-alt: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #059669;
+            --warning: #d97706;
+            --accent: #0ea5e9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            font-feature-settings: 'kern' 1, 'liga' 1;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* PROFESSIONAL HEADER */
+        .monitor-header {
+            height: 90px;
+            background: var(--surface);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 48px;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .brand-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .time-display {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .connection-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--surface-alt);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* MAIN CONTENT LAYOUT */
+        .monitor-content {
+            height: calc(100vh - 90px);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        /* LEFT PANEL - QUEUE STATUS */
+        .queue-panel {
+            background: var(--primary);
+            color: white;
+            padding: 48px;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: -0.025em;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .service-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .service-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .queue-count {
+            font-size: 52px;
+            font-weight: 800;
+            color: white;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .service-info {
+            text-align: right;
+        }
+
+        .next-ticket {
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 4px;
+        }
+
+        .wait-time {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        /* RIGHT PANEL - CALL HISTORY */
+        .history-panel {
+            background: var(--surface);
+            padding: 48px;
+            overflow-y: auto;
+        }
+
+        .history-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 28px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .ticket-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ticket-badge {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+            min-width: 60px;
+        }
+
+        .counter-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .call-timestamp {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* NOW SERVING POPUP CARD */
+        .serving-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .serving-overlay.show {
+            display: flex;
+        }
+
+        .serving-card {
+            width: 56vw;
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, var(--surface) 0%, #f8fafc 100%);
+            border-radius: 24px;
+            border: 2px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .serving-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 50%, var(--primary-light) 100%);
+        }
+
+        .serving-header {
+            font-size: 36px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .serving-ticket {
+            font-size: 96px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 24px;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            animation: gentle-scale 4s infinite ease-in-out;
+        }
+
+        .serving-counter {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: rgba(30, 64, 175, 0.1);
+            padding: 12px 32px;
+            border-radius: 12px;
+            border: 1px solid rgba(30, 64, 175, 0.2);
+        }
+
+        /* ELEGANT ANIMATIONS */
+        @keyframes gentle-scale {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .fade-in {
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-out {
+            animation: slideOut 0.6s cubic-bezier(0.4, 0, 0.6, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.95) translateY(-20px);
+            }
+        }
+
+        /* RESPONSIVE ADJUSTMENTS */
+        @media (max-width: 1920px) {
+            .serving-ticket { font-size: 84px; }
+            .queue-count { font-size: 48px; }
+        }
+
+        @media (max-width: 1366px) {
+            .serving-ticket { font-size: 72px; }
+            .queue-count { font-size: 44px; }
+            .monitor-content { padding: 32px; }
+        }
+
+        /* LOADING STATE */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* ERROR STATE */
+        .error-state {
+            color: #ef4444;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- PROFESSIONAL HEADER -->
+    <header class="monitor-header">
+        <div class="brand">
+            <div class="brand-icon">FM</div>
+            <h1 class="brand-text">FlowMatic</h1>
+        </div>
+        <div class="header-status">
+            <time class="time-display" id="current-time">00:00:00</time>
+            <div class="connection-indicator">
+                <div class="status-dot" id="status-indicator"></div>
+                <span class="status-text">Live</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="monitor-content">
+        <!-- QUEUE STATUS PANEL -->
+        <section class="queue-panel">
+            <h2 class="panel-title">Queue Status</h2>
+            
+            <div class="service-card">
+                <h3 class="service-name">General Service</h3>
+                <div class="service-stats">
+                    <div class="queue-count" id="general-count">12</div>
+                    <div class="service-info">
+                        <div class="next-ticket">Next: A045</div>
+                        <div class="wait-time">Est. 8 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <h3 class="service-name">Account Services</h3>
+                <div class="service-stats">
+                    <div class="queue-count" id="account-count">7</div>
+                    <div class="service-info">
+                        <div class="next-ticket">Next: B032</div>
+                        <div class="wait-time">Est. 12 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <h3 class="service-name">VIP Services</h3>
+                <div class="service-stats">
+                    <div class="queue-count" id="vip-count">3</div>
+                    <div class="service-info">
+                        <div class="next-ticket">Next: V008</div>
+                        <div class="wait-time">Est. 5 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <h3 class="service-name">Technical Support</h3>
+                <div class="service-stats">
+                    <div class="queue-count" id="technical-count">5</div>
+                    <div class="service-info">
+                        <div class="next-ticket">Next: T012</div>
+                        <div class="wait-time">Est. 15 min</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CALL HISTORY PANEL -->
+        <section class="history-panel">
+            <h2 class="history-title">Recent Calls</h2>
+            
+            <div class="history-list" id="history-list">
+                <div class="history-item">
+                    <div class="ticket-info">
+                        <span class="ticket-badge">A044</span>
+                        <span class="counter-name">Counter 1</span>
+                    </div>
+                    <time class="call-timestamp">14:25</time>
+                </div>
+
+                <div class="history-item">
+                    <div class="ticket-info">
+                        <span class="ticket-badge">V007</span>
+                        <span class="counter-name">VIP Counter</span>
+                    </div>
+                    <time class="call-timestamp">14:23</time>
+                </div>
+
+                <div class="history-item">
+                    <div class="ticket-info">
+                        <span class="ticket-badge">B031</span>
+                        <span class="counter-name">Counter 2</span>
+                    </div>
+                    <time class="call-timestamp">14:20</time>
+                </div>
+
+                <div class="history-item">
+                    <div class="ticket-info">
+                        <span class="ticket-badge">T011</span>
+                        <span class="counter-name">Tech Counter</span>
+                    </div>
+                    <time class="call-timestamp">14:18</time>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- NOW SERVING POPUP -->
+    <div class="serving-overlay" id="serving-overlay">
+        <div class="serving-card" id="serving-card">
+            <div class="serving-header">Now Serving</div>
+            <div class="serving-ticket" id="serving-number">A045</div>
+            <div class="serving-counter" id="serving-location">Counter 1</div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        class ProfessionalMonitor {
+            constructor() {
+                this.socket = io('/monitor');
+                this.initializeEvents();
+                this.startClock();
+                this.loadInitialData();
+            }
+
+            initializeEvents() {
+                // Connection status
+                this.socket.on('connect', () => {
+                    this.updateConnectionStatus(true);
+                });
+
+                this.socket.on('disconnect', () => {
+                    this.updateConnectionStatus(false);
+                });
+
+                // Core events
+                this.socket.on('ticket-called', (data) => {
+                    this.showNowServing(data.ticket.number, data.counter.name);
+                });
+
+                this.socket.on('queue-updated', (data) => {
+                    this.updateQueueStatus(data);
+                });
+
+                this.socket.on('call-history-updated', (data) => {
+                    this.updateCallHistory(data);
+                });
+
+                // Test key (remove in production)
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 't' || e.key === 'T') {
+                        this.showNowServing('A045', 'Counter 1');
+                    }
+                });
+            }
+
+            updateConnectionStatus(connected) {
+                const indicator = document.getElementById('status-indicator');
+                const text = indicator.nextElementSibling;
+                
+                if (connected) {
+                    indicator.style.background = 'var(--success)';
+                    indicator.style.boxShadow = '0 0 0 2px rgba(5, 150, 105, 0.2)';
+                    text.textContent = 'Live';
+                } else {
+                    indicator.style.background = '#ef4444';
+                    indicator.style.boxShadow = '0 0 0 2px rgba(239, 68, 68, 0.2)';
+                    text.textContent = 'Offline';
+                }
+            }
+
+            showNowServing(ticketNumber, counterName) {
+                const overlay = document.getElementById('serving-overlay');
+                const card = document.getElementById('serving-card');
+                const numberEl = document.getElementById('serving-number');
+                const locationEl = document.getElementById('serving-location');
+
+                // Update content
+                numberEl.textContent = ticketNumber;
+                locationEl.textContent = counterName;
+
+                // Show with professional animation
+                overlay.classList.add('show');
+                card.classList.add('fade-in');
+
+                // Voice announcement
+                this.playAnnouncement(ticketNumber, counterName);
+
+                // Hide after 8 seconds
+                setTimeout(() => {
+                    card.classList.remove('fade-in');
+                    card.classList.add('fade-out');
+                    
+                    setTimeout(() => {
+                        overlay.classList.remove('show');
+                        card.classList.remove('fade-out');
+                    }, 600);
+                }, 8000);
+            }
+
+            playAnnouncement(ticketNumber, counterName) {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(
+                        `Ticket ${ticketNumber} to ${counterName}`
+                    );
+                    utterance.volume = 0.8;
+                    utterance.rate = 0.9;
+                    speechSynthesis.speak(utterance);
+                }
+            }
+
+            updateQueueStatus(data) {
+                if (data.services) {
+                    data.services.forEach(service => {
+                        const countEl = document.getElementById(`${service.type}-count`);
+                        if (countEl) {
+                            countEl.textContent = service.waiting;
+                        }
+                    });
+                }
+            }
+
+            updateCallHistory(data) {
+                if (!data.calls || data.calls.length === 0) return;
+
+                const historyList = document.getElementById('history-list');
+                const recentCalls = data.calls.slice(0, 4);
+
+                historyList.innerHTML = recentCalls.map(call => `
+                    <div class="history-item">
+                        <div class="ticket-info">
+                            <span class="ticket-badge">${call.ticketNumber}</span>
+                            <span class="counter-name">${call.counterName}</span>
+                        </div>
+                        <time class="call-timestamp">${call.time}</time>
+                    </div>
+                `).join('');
+            }
+
+            async loadInitialData() {
+                try {
+                    const [queueResponse, historyResponse] = await Promise.all([
+                        fetch('/api/monitor/queue-status'),
+                        fetch('/api/monitor/call-history')
+                    ]);
+
+                    const queueData = await queueResponse.json();
+                    const historyData = await historyResponse.json();
+
+                    this.updateQueueStatus(queueData);
+                    this.updateCallHistory(historyData);
+                } catch (error) {
+                    console.error('Failed to load initial data:', error);
+                }
+            }
+
+            startClock() {
+                const updateTime = () => {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    document.getElementById('current-time').textContent = timeString;
+                };
+
+                updateTime();
+                setInterval(updateTime, 1000);
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            new ProfessionalMonitor();
+        });
+    </script>
+</body>
+</html>

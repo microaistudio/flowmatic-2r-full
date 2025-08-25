@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Monitor Display</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .datetime {
+            text-align: right;
+        }
+
+        .time {
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            position: absolute;
+            top: 15px;
+            right: 50%;
+            transform: translateX(50%);
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .lang-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: white;
+        }
+
+        /* FIXED: Main Content with proper height constraints */
+        .main-content {
+            flex: 1;
+            display: flex;
+            padding: 15px;
+            gap: 15px;
+            min-height: 0;
+            overflow: hidden;
+            height: calc(100vh - 120px); /* Account for header and ticker */
+        }
+
+        /* FIXED: Now Serving Section with proper grid layout */
+        .now-serving {
+            flex: 3;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .counter-card {
+            background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .counter-card.calling {
+            animation: pulse 2s infinite;
+            border-color: #4CAF50;
+            box-shadow: 0 0 40px rgba(76, 175, 80, 0.5);
+        }
+
+        .counter-card.loading {
+            border-color: #FF9800;
+            box-shadow: 0 0 40px rgba(255, 152, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.5);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 60px rgba(76, 175, 80, 0.7);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.5);
+            }
+        }
+
+        .counter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .counter-label {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        .counter-number {
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .ticket-display {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        .ticket-label {
+            font-size: 1.2rem;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .ticket-number {
+            font-size: 3.5rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+            to { text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.5); }
+        }
+
+        .service-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Service Colors */
+        .service-A { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .service-B { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .service-V { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #000; }
+        .service-T { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+
+        /* Queue Info Section */
+        .queue-info {
+            flex: 1;
+            background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .queue-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            opacity: 0.9;
+            flex-shrink: 0;
+        }
+
+        .queue-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .queue-item:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+
+        .queue-service {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .queue-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .waiting-count {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .wait-time {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* FIXED: Ticker with proper height */
+        .ticker {
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+            padding: 12px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+            height: 50px;
+        }
+
+        .ticker-content {
+            display: flex;
+            animation: scroll 30s linear infinite;
+            gap: 100px;
+            white-space: nowrap;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .ticker-item {
+            white-space: nowrap;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ticker-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            font-weight: bold;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            opacity: 0.5;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .empty-text {
+            font-size: 1.2rem;
+        }
+
+        /* Status Message */
+        .status-message {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .status-indicator.disconnected {
+            background: #f44336;
+            animation: none;
+        }
+
+        /* NOW CALLING POPUP - WOW FACTOR ENHANCED */
+        .now-calling-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #0f1419 0%, #1a237e 50%, #283593 100%);
+            border: 4px solid #4CAF50;
+            border-radius: 25px;
+            padding: 50px 80px;
+            box-shadow: 
+                0 30px 80px rgba(0,0,0,0.9),
+                0 0 100px rgba(76, 175, 80, 0.5),
+                inset 0 2px 20px rgba(255,255,255,0.1);
+            z-index: 2000;
+            text-align: center;
+            /* 16:9 ASPECT RATIO */
+            width: 800px;
+            height: 450px;
+            display: none;
+            backdrop-filter: blur(10px);
+            /* NO TRANSPARENCY - SOLID BACKGROUND */
+            opacity: 1;
+        }
+
+        .now-calling-popup.show {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .now-calling-popup.blinking {
+            animation: wow-blink 0.6s ease-in-out infinite;
+        }
+
+        .now-calling-popup.static {
+            animation: wow-glow 3s ease-in-out infinite alternate;
+            border-color: #2196F3;
+            box-shadow: 
+                0 30px 80px rgba(0,0,0,0.9),
+                0 0 120px rgba(33, 150, 243, 0.6),
+                inset 0 2px 20px rgba(255,255,255,0.15);
+        }
+
+        @keyframes wow-blink {
+            0% { 
+                transform: translate(-50%, -50%) scale(1);
+                border-color: #4CAF50;
+                background: linear-gradient(145deg, #0f1419 0%, #1a237e 50%, #283593 100%);
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.9),
+                    0 0 100px rgba(76, 175, 80, 0.8),
+                    0 0 200px rgba(76, 175, 80, 0.4),
+                    inset 0 2px 20px rgba(255,255,255,0.1);
+            }
+            25% { 
+                transform: translate(-50%, -50%) scale(1.05);
+                border-color: #FF9800;
+                background: linear-gradient(145deg, #1a237e 0%, #283593 50%, #3f51b5 100%);
+                box-shadow: 
+                    0 35px 90px rgba(0,0,0,0.95),
+                    0 0 150px rgba(255, 152, 0, 0.9),
+                    0 0 250px rgba(255, 152, 0, 0.5),
+                    inset 0 2px 25px rgba(255,255,255,0.2);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.08);
+                border-color: #F44336;
+                background: linear-gradient(145deg, #283593 0%, #3f51b5 50%, #5c6bc0 100%);
+                box-shadow: 
+                    0 40px 100px rgba(0,0,0,1),
+                    0 0 180px rgba(244, 67, 54, 0.9),
+                    0 0 300px rgba(244, 67, 54, 0.6),
+                    inset 0 2px 30px rgba(255,255,255,0.25);
+            }
+            75% { 
+                transform: translate(-50%, -50%) scale(1.05);
+                border-color: #9C27B0;
+                background: linear-gradient(145deg, #1a237e 0%, #283593 50%, #3f51b5 100%);
+                box-shadow: 
+                    0 35px 90px rgba(0,0,0,0.95),
+                    0 0 150px rgba(156, 39, 176, 0.9),
+                    0 0 250px rgba(156, 39, 176, 0.5),
+                    inset 0 2px 25px rgba(255,255,255,0.2);
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1);
+                border-color: #4CAF50;
+                background: linear-gradient(145deg, #0f1419 0%, #1a237e 50%, #283593 100%);
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.9),
+                    0 0 100px rgba(76, 175, 80, 0.8),
+                    0 0 200px rgba(76, 175, 80, 0.4),
+                    inset 0 2px 20px rgba(255,255,255,0.1);
+            }
+        }
+
+        @keyframes wow-glow {
+            0% { 
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.9),
+                    0 0 120px rgba(33, 150, 243, 0.6),
+                    inset 0 2px 20px rgba(255,255,255,0.15);
+            }
+            100% { 
+                box-shadow: 
+                    0 30px 80px rgba(0,0,0,0.9),
+                    0 0 160px rgba(33, 150, 243, 0.8),
+                    0 0 300px rgba(33, 150, 243, 0.4),
+                    inset 0 2px 25px rgba(255,255,255,0.2);
+            }
+        }
+
+        .popup-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 
+                0 2px 10px rgba(0,0,0,0.8),
+                0 0 20px rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .popup-ticket {
+            font-size: 6rem;
+            font-weight: 900;
+            margin: 30px 0;
+            color: #ffffff;
+            text-shadow: 
+                0 0 40px rgba(255,255,255,0.9),
+                0 0 80px rgba(255,255,255,0.6),
+                0 5px 20px rgba(0,0,0,0.8);
+            letter-spacing: 8px;
+            font-family: 'Arial Black', Arial, sans-serif;
+            animation: ticket-pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes ticket-pulse {
+            0% { 
+                text-shadow: 
+                    0 0 40px rgba(255,255,255,0.9),
+                    0 0 80px rgba(255,255,255,0.6),
+                    0 5px 20px rgba(0,0,0,0.8);
+            }
+            100% { 
+                text-shadow: 
+                    0 0 60px rgba(255,255,255,1),
+                    0 0 120px rgba(255,255,255,0.8),
+                    0 0 180px rgba(255,255,255,0.4),
+                    0 5px 20px rgba(0,0,0,0.8);
+            }
+        }
+
+        .popup-counter {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: #E3F2FD;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .popup-service {
+            display: inline-block;
+            padding: 15px 35px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-top: 20px;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.4),
+                inset 0 2px 10px rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            top: 80px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .debug-panel.show {
+            display: block;
+        }
+
+        .debug-toggle {
+            position: fixed;
+            top: 80px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            z-index: 1001;
+        }
+
+        /* Responsive for popup */
+        @media (max-width: 1400px) {
+            .logo {
+                font-size: 1.8rem;
+            }
+            .counter-number {
+                font-size: 1.5rem;
+            }
+            .ticket-number {
+                font-size: 3rem;
+            }
+            
+            /* Responsive popup for smaller screens */
+            .now-calling-popup {
+                width: 720px;
+                height: 405px;
+                padding: 40px 60px;
+            }
+            
+            .popup-title {
+                font-size: 2.2rem;
+            }
+            
+            .popup-ticket {
+                font-size: 5rem;
+            }
+            
+            .popup-counter {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .now-calling-popup {
+                width: 640px;
+                height: 360px;
+                padding: 30px 50px;
+            }
+            
+            .popup-title {
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+            }
+            
+            .popup-ticket {
+                font-size: 4rem;
+                margin: 20px 0;
+            }
+            
+            .popup-counter {
+                font-size: 1.6rem;
+                margin-bottom: 15px;
+            }
+            
+            .popup-service {
+                font-size: 1.1rem;
+                padding: 12px 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Debug Toggle -->
+    <button class="debug-toggle" onclick="toggleDebug()">DEBUG</button>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <div id="debugContent">Debug info will appear here...</div>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="th">TH</button>
+        <button class="lang-btn" data-lang="hi">HI</button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">FLOWMATIC SERVICE CENTER</div>
+        <div class="datetime">
+            <div class="time" id="time">--:--:--</div>
+            <div class="date" id="date">--</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Now Serving Section -->
+        <div class="now-serving" id="nowServing">
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-icon">🎫</div>
+                <div class="empty-text">Waiting for ticket calls...</div>
+            </div>
+        </div>
+
+        <!-- Queue Info Section -->
+        <div class="queue-info">
+            <h2 class="queue-title" data-i18n="queueStatus">Queue Status</h2>
+            <div class="queue-stats" id="queueStats">
+                <div class="empty-state">
+                    <div class="empty-text">Loading queue data...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker">
+        <div class="ticker-content" id="tickerContent">
+            <div class="ticker-item">
+                <span>Welcome to FlowMatic Queue Management System</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOW CALLING POPUP - WOW FACTOR ENHANCED -->
+    <div class="now-calling-popup" id="nowCallingPopup">
+        <div class="popup-title" data-i18n="nowCalling">Now Calling</div>
+        <div class="popup-ticket" id="popupTicketNumber">A123</div>
+        <div class="popup-counter" id="popupCounter">Please Go to Counter 1</div>
+        <div class="popup-service" id="popupService">General Service</div>
+    </div>
+
+    <!-- Status Message -->
+    <div class="status-message">
+        <div class="status-indicator disconnected" id="statusIndicator"></div>
+        <span id="statusText">Initializing...</span>
+    </div>
+
+    <!-- Socket.IO Script -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // FIXED: Dynamic API URLs
+        const API_BASE = window.location.origin + '/api';
+        
+        console.log('🚀 FlowMatic Monitor - Using API:', API_BASE);
+        
+        // Global variables
+        let currentLang = 'en';
+        let socket = null;
+        let countersData = {};
+        let servicesData = {};
+        let voiceEnabled = true;
+        let isConnected = false;
+        let debugLog = [];
+        let debugEnabled = false;
+        
+        // Debug logging function
+        function addDebugLog(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            debugLog.push(logEntry);
+            if (data) {
+                debugLog.push(`  Data: ${JSON.stringify(data, null, 2)}`);
+            }
+            
+            // Keep only last 20 entries
+            if (debugLog.length > 40) {
+                debugLog = debugLog.slice(-40);
+            }
+            
+            // Update debug panel if visible
+            if (debugEnabled) {
+                updateDebugPanel();
+            }
+            
+            console.log(logEntry, data || '');
+        }
+        
+        function updateDebugPanel() {
+            const panel = document.getElementById('debugContent');
+            if (panel) {
+                panel.innerHTML = debugLog.join('<br>');
+                panel.scrollTop = panel.scrollHeight;
+            }
+        }
+        
+        window.toggleDebug = function() {
+            debugEnabled = !debugEnabled;
+            const panel = document.getElementById('debugPanel');
+            if (debugEnabled) {
+                panel.classList.add('show');
+                updateDebugPanel();
+            } else {
+                panel.classList.remove('show');
+            }
+        };
+        
+        // Translations
+        const translations = {
+            en: {
+                nowServing: "Now Serving",
+                nowCalling: "Now Calling",
+                counter: "Counter",
+                queueStatus: "Queue Status",
+                waiting: "Waiting",
+                estimatedWait: "Est. wait",
+                minutes: "min",
+                nextInQueue: "Next in queue",
+                noActiveTickets: "No active tickets",
+                generalService: "General Service",
+                accountServices: "Account Services",
+                vipServices: "VIP Services",
+                technicalSupport: "Technical Support",
+                pleaseGoTo: "Please Go to"
+            },
+            th: {
+                nowServing: "กำลังให้บริการ",
+                nowCalling: "เรียกคิว",
+                counter: "ช่องบริการ",
+                queueStatus: "สถานะคิว",
+                waiting: "รอคิว",
+                estimatedWait: "รอประมาณ",
+                minutes: "นาที",
+                nextInQueue: "คิวถัดไป",
+                noActiveTickets: "ไม่มีคิวที่กำลังดำเนินการ",
+                generalService: "บริการทั่วไป",
+                accountServices: "บริการบัญชี",
+                vipServices: "บริการวีไอพี",
+                technicalSupport: "ฝ่ายเทคนิค",
+                pleaseGoTo: "โปรดไปที่"
+            },
+            hi: {
+                nowServing: "अब सेवा दे रहे हैं",
+                nowCalling: "अब बुला रहे हैं",
+                counter: "काउंटर",
+                queueStatus: "कतार की स्थिति",
+                waiting: "प्रतीक्षा",
+                estimatedWait: "अनुमानित प्रतीक्षा",
+                minutes: "मिनट",
+                nextInQueue: "कतार में अगला",
+                noActiveTickets: "कोई सक्रिय टिकट नहीं",
+                generalService: "सामान्य सेवा",
+                accountServices: "खाता सेवाएं",
+                vipServices: "वीआईपी सेवाएं",
+                technicalSupport: "तकनीकी सहायता",
+                pleaseGoTo: "कृपया जाएं"
+            }
+        };
+        
+        // Service name mapping
+        const serviceNames = {
+            'General Service': 'generalService',
+            'Account Services': 'accountServices', 
+            'VIP Services': 'vipServices',
+            'Technical Support': 'technicalSupport',
+            'A': 'generalService',
+            'B': 'accountServices',
+            'V': 'vipServices',
+            'T': 'technicalSupport'
+        };
+        
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            addDebugLog('🚀 FlowMatic Monitor Starting...');
+            
+            if (typeof io === 'undefined') {
+                addDebugLog('❌ Socket.IO not loaded!');
+                showError('Socket.IO library not found. Please check server configuration.');
+                return;
+            }
+            
+            initializeApp();
+        });
+        
+        function initializeApp() {
+            addDebugLog('✅ Initializing FlowMatic Monitor...');
+            initializeClock();
+            initializeLanguage();
+            
+            // Start API testing immediately
+            testAPIs();
+            
+            // Start socket connection
+            setTimeout(initializeSocket, 500);
+            setTimeout(loadInitialData, 1000);
+            
+            // Set up periodic refresh
+            setInterval(function() {
+                if (isConnected) {
+                    addDebugLog('🔄 Periodic refresh...');
+                    loadInitialData();
+                }
+            }, 30000);
+            
+            setInterval(updateTicker, 10000);
+        }
+        
+        // INTENSIVE API TESTING
+        async function testAPIs() {
+            addDebugLog('🧪 Testing API endpoints...');
+            
+            try {
+                // Test counters API
+                const countersRes = await fetch(API_BASE + '/monitor/counters');
+                addDebugLog(`🏪 Counters API: ${countersRes.status} ${countersRes.ok ? 'OK' : 'FAILED'}`);
+                if (countersRes.ok) {
+                    const data = await countersRes.json();
+                    addDebugLog('  Counters data received', data);
+                } else {
+                    addDebugLog(`  Counters API error: ${countersRes.statusText}`);
+                }
+            } catch (e) {
+                addDebugLog(`❌ Counters API failed: ${e.message}`);
+            }
+            
+            try {
+                // Test services API  
+                const servicesRes = await fetch(API_BASE + '/kiosk/services');
+                addDebugLog(`📋 Services API: ${servicesRes.status} ${servicesRes.ok ? 'OK' : 'FAILED'}`);
+                if (servicesRes.ok) {
+                    const data = await servicesRes.json();
+                    addDebugLog('  Services data received', data);
+                } else {
+                    addDebugLog(`  Services API error: ${servicesRes.statusText}`);
+                }
+            } catch (e) {
+                addDebugLog(`❌ Services API failed: ${e.message}`);
+            }
+        }
+        
+        function showError(message) {
+            addDebugLog(`🚨 Error: ${message}`);
+            document.getElementById('nowServing').innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-icon">❌</div>
+                    <div class="empty-text">Error: ${message}</div>
+                    <div style="font-size: 1rem; margin-top: 10px; opacity: 0.7;">
+                        Make sure FlowMatic server is running
+                    </div>
+                </div>
+            `;
+            document.getElementById('statusText').textContent = 'Error';
+            document.getElementById('statusIndicator').classList.add('disconnected');
+        }
+        
+        // Clock functionality
+        function initializeClock() {
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('time').textContent = now.toLocaleTimeString('en-US', { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('date').textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+        
+        // Language handling
+        function initializeLanguage() {
+            document.querySelectorAll('.lang-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.lang-btn').forEach(function(b) {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    currentLang = this.dataset.lang;
+                    updateLanguage();
+                });
+            });
+        }
+        
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(function(element) {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    element.textContent = translations[currentLang][key];
+                }
+            });
+            renderCounters();
+            renderQueueStats();
+        }
+        
+        // FIXED: Socket.IO connection with INTENSIVE debugging
+        function initializeSocket() {
+            addDebugLog('🔌 Connecting to Socket.IO /monitor namespace...');
+            
+            try {
+                socket = io('/monitor');
+                
+                socket.on('connect', function() {
+                    addDebugLog('✅ Socket connected');
+                    addDebugLog(`  Socket ID: ${socket.id}`);
+                    addDebugLog(`  Namespace: ${socket.nsp.name}`);
+                    
+                    isConnected = true;
+                    document.getElementById('statusIndicator').classList.remove('disconnected');
+                    document.getElementById('statusText').textContent = 'Connected';
+                    
+                    // Join all-updates room
+                    addDebugLog('📢 Emitting join-all...');
+                    socket.emit('join-all');
+                });
+                
+                socket.on('joined', function(data) {
+                    addDebugLog('✅ Joined room', data);
+                });
+                
+                socket.on('disconnect', function(reason) {
+                    addDebugLog(`❌ Socket disconnected: ${reason}`);
+                    isConnected = false;
+                    document.getElementById('statusIndicator').classList.add('disconnected');
+                    document.getElementById('statusText').textContent = 'Disconnected';
+                });
+                
+                socket.on('connect_error', function(error) {
+                    addDebugLog(`❌ Socket connection error: ${error.message}`);
+                    showError('Failed to connect to server');
+                });
+                
+                // MONITOR ALL EVENTS
+                socket.onAny(function(eventName, data) {
+                    addDebugLog(`🔥 SOCKET EVENT [${eventName}]`, data);
+                    
+                    // Special handling for critical events
+                    if (eventName === 'ticket-called') {
+                        addDebugLog('🎯 PROCESSING TICKET-CALLED...');
+                        processTicketCalled(data);
+                    } else if (eventName === 'counter-updated') {
+                        addDebugLog('🏪 PROCESSING COUNTER-UPDATED...');
+                        processCounterUpdated(data);
+                    } else if (eventName === 'ticket-completed') {
+                        addDebugLog('✅ PROCESSING TICKET-COMPLETED...');
+                        processTicketCompleted(data);
+                    } else if (eventName === 'queue-updated') {
+                        addDebugLog('📊 PROCESSING QUEUE-UPDATED...');
+                        handleQueueUpdated(data);
+                    }
+                });
+                
+            } catch (error) {
+                addDebugLog(`❌ Socket initialization error: ${error.message}`);
+                showError('Socket connection failed');
+            }
+        }
+        
+        function processTicketCalled(data) {
+            try {
+                // Show loading state immediately
+                const counterId = data.counter?.id;
+                if (counterId) {
+                    addCounterLoadingState(counterId);
+                }
+                
+                // Extract data
+                const counter = data.counter;
+                const ticket = data.ticket;
+                
+                addDebugLog('  Extracted data:', {
+                    counterId: counter?.id,
+                    counterNumber: counter?.number,
+                    ticketNumber: ticket?.ticketNumber || ticket?.ticket_number,
+                    serviceId: ticket?.serviceId
+                });
+                
+                if (!counter || !ticket) {
+                    addDebugLog('❌ Missing counter or ticket data in ticket-called');
+                    return;
+                }
+                
+                const ticketNumber = ticket.ticketNumber || ticket.ticket_number;
+                
+                // Initialize counter if doesn't exist
+                if (!countersData[counterId]) {
+                    countersData[counterId] = {
+                        id: counterId,
+                        number: counter.number,
+                        name: counter.name || `Counter ${counter.number}`
+                    };
+                    addDebugLog('  Created new counter:', countersData[counterId]);
+                }
+                
+                // Update counter with ticket
+                countersData[counterId].current_ticket = {
+                    ticket_number: ticketNumber,
+                    service_id: ticket.serviceId,
+                    service_name: ticket.serviceName
+                };
+                countersData[counterId].state = 'serving';
+                
+                addDebugLog('  Updated counter data:', countersData[counterId]);
+                
+                // Remove loading state and re-render
+                removeCounterLoadingState(counterId);
+                renderCounters();
+                addDebugLog('✅ Counter display updated');
+                
+                // Add visual animation
+                setTimeout(function() {
+                    const card = document.getElementById('counter-' + counterId);
+                    if (card) {
+                        card.classList.add('calling');
+                        setTimeout(function() {
+                            card.classList.remove('calling');
+                        }, 5000);
+                    }
+                }, 100);
+                
+                // Voice announcement
+                if (voiceEnabled && 'speechSynthesis' in window) {
+                    announceTicket(ticketNumber, counter.number);
+                }
+                
+                // SHOW NOW CALLING POPUP - CRITICAL FEATURE
+                showNowCallingPopup(ticketNumber, counter.number, ticket.serviceName || getServiceName(ticketNumber.charAt(0)));
+                
+            } catch (error) {
+                addDebugLog(`❌ Error processing ticket-called: ${error.message}`);
+            }
+        }
+        
+        function processCounterUpdated(data) {
+            try {
+                const counterId = data.counterId || data.counter?.id;
+                
+                if (!counterId) {
+                    addDebugLog('❌ No counter ID found in counter-updated event');
+                    return;
+                }
+                
+                addDebugLog(`  Processing counter ${counterId} update`);
+                
+                // Initialize counter if doesn't exist
+                if (!countersData[counterId]) {
+                    countersData[counterId] = {
+                        id: counterId,
+                        number: counterId,
+                        name: `Counter ${counterId}`
+                    };
+                    addDebugLog('  Created new counter for status update:', countersData[counterId]);
+                }
+                
+                // Update status
+                const newStatus = data.status || 'available';
+                countersData[counterId].state = newStatus;
+                addDebugLog(`  Set counter ${counterId} state to: ${newStatus}`);
+                
+                // Handle ticket assignment
+                if (data.currentTicket) {
+                    countersData[counterId].current_ticket = data.currentTicket;
+                    addDebugLog('  Assigned ticket:', data.currentTicket);
+                } else if (newStatus === 'available') {
+                    countersData[counterId].current_ticket = null;
+                    addDebugLog('  Cleared ticket (counter available)');
+                }
+                
+                addDebugLog('  Final counter data:', countersData[counterId]);
+                
+                // Re-render
+                renderCounters();
+                addDebugLog('✅ Counter status updated');
+                
+            } catch (error) {
+                addDebugLog(`❌ Error processing counter-updated: ${error.message}`);
+            }
+        }
+        
+        function processTicketCompleted(data) {
+            try {
+                addDebugLog('  Ticket completed data:', data);
+                // The counter-updated event should handle clearing the counter
+            } catch (error) {
+                addDebugLog(`❌ Error processing ticket-completed: ${error.message}`);
+            }
+        }
+        
+        function addCounterLoadingState(counterId) {
+            const card = document.getElementById('counter-' + counterId);
+            if (card) {
+                card.classList.add('loading');
+                addDebugLog(`  Added loading state to counter ${counterId}`);
+            }
+        }
+        
+        function removeCounterLoadingState(counterId) {
+            const card = document.getElementById('counter-' + counterId);
+            if (card) {
+                card.classList.remove('loading');
+                addDebugLog(`  Removed loading state from counter ${counterId}`);
+            }
+        }
+        
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                addDebugLog('📥 Loading initial data...');
+                
+                // Load counters
+                const countersResponse = await fetch(API_BASE + '/monitor/counters');
+                if (countersResponse.ok) {
+                    const countersResult = await countersResponse.json();
+                    if (countersResult.success && countersResult.data) {
+                        addDebugLog(`✅ Loaded ${countersResult.data.length} counters from API`);
+                        
+                        // FIXED: Don't overwrite real-time data with stale API data
+                        countersResult.data.forEach(function(counter) {
+                            if (!countersData[counter.id]) {
+                                // Only add if counter doesn't exist
+                                countersData[counter.id] = counter;
+                                addDebugLog(`  Added new counter ${counter.id} from API`);
+                            } else {
+                                // ONLY update basic info, NEVER overwrite current_ticket or state
+                                // if we already have real-time data
+                                countersData[counter.id].name = counter.name;
+                                countersData[counter.id].number = counter.number;
+                                addDebugLog(`  Updated basic info for counter ${counter.id}, kept real-time data`);
+                            }
+                        });
+                        
+                        renderCounters();
+                    }
+                } else {
+                    addDebugLog(`⚠️ Counters API returned: ${countersResponse.status}`);
+                }
+                
+                // Load services
+                const servicesResponse = await fetch(API_BASE + '/kiosk/services');
+                if (servicesResponse.ok) {
+                    const servicesResult = await servicesResponse.json();
+                    addDebugLog('📋 Services API response:', servicesResult);
+                    if (servicesResult.success && servicesResult.services) {
+                        addDebugLog(`✅ Loaded ${servicesResult.services.length} services from API`);
+                        servicesData = {};
+                        servicesResult.services.forEach(function(service) {
+                            servicesData[service.id] = service;
+                            addDebugLog(`  Service ${service.id}: ${service.name} (${service.prefix})`);
+                        });
+                        addDebugLog('📊 Final services data:', servicesData);
+                        renderQueueStats();
+                    } else {
+                        addDebugLog('❌ Services API returned invalid format:', servicesResult);
+                    }
+                } else {
+                    addDebugLog(`⚠️ Services API returned: ${servicesResponse.status}`);
+                    // Try alternative API endpoint
+                    try {
+                        addDebugLog('🔄 Trying alternative services endpoint...');
+                        const altResponse = await fetch(API_BASE + '/monitor/services');
+                        if (altResponse.ok) {
+                            const altResult = await altResponse.json();
+                            addDebugLog('📋 Alternative services response:', altResult);
+                            if (altResult.success && altResult.data) {
+                                servicesData = {};
+                                altResult.data.forEach(function(service) {
+                                    servicesData[service.id] = service;
+                                });
+                                renderQueueStats();
+                            }
+                        }
+                    } catch (e) {
+                        addDebugLog(`❌ Alternative services API failed: ${e.message}`);
+                    }
+                }
+                
+            } catch (error) {
+                addDebugLog(`❌ Error loading initial data: ${error.message}`);
+            }
+        }
+        
+        function handleQueueUpdated(data) {
+            const serviceId = data.serviceId || data.service_id;
+            
+            if (serviceId && servicesData[serviceId]) {
+                let waitingCount = 0;
+                if (data.queue && typeof data.queue.waiting === 'number') {
+                    waitingCount = data.queue.waiting;
+                } else if (typeof data.waiting === 'number') {
+                    waitingCount = data.waiting;
+                } else if (typeof data.queueCount === 'number') {
+                    waitingCount = data.queueCount;
+                }
+                
+                servicesData[serviceId].queueCount = waitingCount;
+                addDebugLog(`📊 Updated service ${serviceId} queue count: ${waitingCount}`);
+                renderQueueStats();
+            }
+        }
+        
+        // FIXED: Rendering functions
+        function renderCounters() {
+            const container = document.getElementById('nowServing');
+            if (!container) return;
+            
+            addDebugLog(`🎨 Rendering ${Object.keys(countersData).length} counters...`);
+            container.innerHTML = '';
+            
+            // Ensure we always show 4 counters
+            for (let i = 1; i <= 4; i++) {
+                let counter = Object.values(countersData).find(c => c.number == i) || {
+                    id: i,
+                    number: i,
+                    name: `Counter ${i}`,
+                    state: 'offline',
+                    current_ticket: null
+                };
+                
+                const card = createCounterCard(counter);
+                container.appendChild(card);
+            }
+            
+            addDebugLog('✅ Counters rendered');
+        }
+        
+        function createCounterCard(counter) {
+            const card = document.createElement('div');
+            card.className = 'counter-card';
+            card.id = 'counter-' + counter.id;
+            
+            const ticket = counter.current_ticket;
+            const ticketNumber = ticket?.ticket_number || ticket?.ticketNumber;
+            
+            // INTENSIVE DEBUGGING for render logic
+            addDebugLog(`🎨 Rendering counter ${counter.id}:`);
+            addDebugLog(`  State: ${counter.state}`);
+            addDebugLog(`  Ticket exists: ${!!ticket}`);
+            if (ticket) {
+                addDebugLog(`  Ticket number: ${ticketNumber}`);
+                addDebugLog(`  Full ticket:`, ticket);
+            }
+            addDebugLog(`  Condition check: ticket=${!!ticket}, ticket_number=${!!ticketNumber}, state_serving=${counter.state === 'serving'}`);
+            
+            let content = `
+                <div class="counter-header">
+                    <div class="counter-label">${translations[currentLang].counter}</div>
+                    <div class="counter-number">${counter.number}</div>
+                </div>
+            `;
+            
+            if (ticket && ticketNumber && counter.state === 'serving') {
+                addDebugLog(`  ✅ Showing ticket: ${ticketNumber}`);
+                const prefix = ticketNumber.charAt(0);
+                const serviceClass = 'service-' + prefix;
+                const serviceName = getServiceName(prefix);
+                
+                content += `
+                    <div class="ticket-display">
+                        <div class="ticket-label">${translations[currentLang].nowServing}</div>
+                        <div class="ticket-number">${ticketNumber}</div>
+                        <div class="service-badge ${serviceClass}">${serviceName}</div>
+                    </div>
+                `;
+            } else {
+                addDebugLog(`  ⏳ Showing hourglass - condition failed`);
+                content += `
+                    <div class="ticket-display">
+                        <div class="empty-state">
+                            <div class="empty-icon">⏳</div>
+                            <div class="empty-text">Ready</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            card.innerHTML = content;
+            return card;
+        }
+        
+        function renderQueueStats() {
+            const container = document.getElementById('queueStats');
+            if (!container) return;
+            
+            addDebugLog(`📊 Rendering queue stats for ${Object.keys(servicesData).length} services...`);
+            container.innerHTML = '';
+            
+            const services = Object.values(servicesData);
+            if (services.length === 0) {
+                addDebugLog('⚠️ No services data available');
+                container.innerHTML = '<div class="empty-state"><div class="empty-text">No services available</div></div>';
+                return;
+            }
+            
+            services.forEach(function(service) {
+                const item = document.createElement('div');
+                item.className = 'queue-item';
+                
+                const prefix = service.prefix || service.name.charAt(0);
+                const serviceClass = 'service-' + prefix;
+                const serviceName = getServiceName(service.name) || service.name;
+                const waitingCount = service.queueCount || service.waiting || 0;
+                const waitTime = waitingCount * 5;
+                
+                addDebugLog(`  Service ${service.id}: ${serviceName} - ${waitingCount} waiting`);
+                
+                item.innerHTML = `
+                    <div class="queue-service ${serviceClass}">${serviceName}</div>
+                    <div class="queue-details">
+                        <div>
+                            <div class="waiting-count">${waitingCount}</div>
+                            <div class="wait-time">${translations[currentLang].waiting}</div>
+                        </div>
+                        <div class="wait-time">
+                            ${translations[currentLang].estimatedWait}<br>
+                            ${waitTime} ${translations[currentLang].minutes}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+            
+            addDebugLog('✅ Queue stats rendered successfully');
+        }
+        
+        function getServiceName(input) {
+            if (!input) return '';
+            
+            if (serviceNames[input]) {
+                return translations[currentLang][serviceNames[input]];
+            }
+            
+            const key = serviceNames[input];
+            if (key) {
+                return translations[currentLang][key];
+            }
+            
+            const prefix = input.charAt(0).toUpperCase();
+            const mapping = {
+                'A': 'generalService',
+                'B': 'accountServices', 
+                'V': 'vipServices',
+                'T': 'technicalSupport'
+            };
+            
+            if (mapping[prefix]) {
+                return translations[currentLang][mapping[prefix]];
+            }
+            
+            return input;
+        }
+        
+        function updateTicker() {
+            const container = document.getElementById('tickerContent');
+            if (!container) return;
+            
+            const messages = [
+                'Welcome to FlowMatic Queue Management System',
+                'Please wait for your number to be called',
+                'For assistance, please approach the information desk'
+            ];
+            
+            const tickerItems = messages.map(function(msg) {
+                return `<div class="ticker-item"><span>${msg}</span></div>`;
+            }).join('');
+            
+            container.innerHTML = tickerItems;
+        }
+        
+        function announceTicket(ticketNumber, counterNumber) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+            
+            try {
+                const utterance = new SpeechSynthesisUtterance();
+                utterance.text = `Ticket ${ticketNumber} to counter ${counterNumber}`;
+                utterance.rate = 0.9;
+                utterance.volume = 0.8;
+                speechSynthesis.speak(utterance);
+                addDebugLog(`🔊 Voice announcement: ${utterance.text}`);
+            } catch (error) {
+                addDebugLog(`❌ Voice announcement failed: ${error.message}`);
+            }
+        }
+        
+        // NOW CALLING POPUP SYSTEM - WOW FACTOR ENHANCED
+        function showNowCallingPopup(ticketNumber, counterNumber, serviceName) {
+            addDebugLog(`🚨 Showing WOW NOW CALLING popup: ${ticketNumber} → Counter ${counterNumber}`);
+            
+            const popup = document.getElementById('nowCallingPopup');
+            const ticketEl = document.getElementById('popupTicketNumber');
+            const counterEl = document.getElementById('popupCounter');
+            const serviceEl = document.getElementById('popupService');
+            
+            if (!popup || !ticketEl || !counterEl || !serviceEl) {
+                addDebugLog('❌ Popup elements not found');
+                return;
+            }
+            
+            // Set content
+            ticketEl.textContent = ticketNumber;
+            counterEl.textContent = `${translations[currentLang].pleaseGoTo} ${translations[currentLang].counter} ${counterNumber}`;
+            
+            // Set service with proper styling
+            const prefix = ticketNumber.charAt(0);
+            const serviceClass = 'service-' + prefix;
+            serviceEl.textContent = serviceName || getServiceName(prefix);
+            serviceEl.className = `popup-service ${serviceClass}`;
+            
+            // Show popup with ENHANCED blinking animation
+            popup.classList.add('show', 'blinking');
+            addDebugLog('  Phase 1: WOW BLINKING for 5 seconds...');
+            
+            // After 5 seconds, stop blinking and make it static with glow
+            setTimeout(function() {
+                popup.classList.remove('blinking');
+                popup.classList.add('static');
+                addDebugLog('  Phase 2: Static glow display for 5 seconds...');
+                
+                // After another 5 seconds, hide popup with fade
+                setTimeout(function() {
+                    popup.style.transition = 'all 0.5s ease-out';
+                    popup.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                    popup.style.opacity = '0';
+                    
+                    setTimeout(function() {
+                        popup.classList.remove('show', 'static');
+                        popup.style.transition = '';
+                        popup.style.transform = '';
+                        popup.style.opacity = '';
+                        addDebugLog('  Phase 3: Popup hidden with fade effect');
+                    }, 500);
+                }, 5000);
+            }, 5000);
+        }
+        
+        // EMERGENCY DEBUG FUNCTIONS
+        window.debugCounters = function() {
+            addDebugLog('🔍 Current counters data:', countersData);
+            addDebugLog('🔍 DOM counters:', document.querySelectorAll('.counter-card').length);
+            console.log('Debug counters:', countersData);
+        };
+        
+        window.forceRender = function() {
+            addDebugLog('🔄 Forcing render...');
+            renderCounters();
+            renderQueueStats();
+        };
+        
+        window.clearCounter = function(counterId) {
+            addDebugLog(`🧹 Clearing counter ${counterId}...`);
+            if (countersData[counterId]) {
+                countersData[counterId].current_ticket = null;
+                countersData[counterId].state = 'available';
+                renderCounters();
+            }
+        };
+        
+        window.testConnection = function() {
+            addDebugLog('🧪 Testing connection...');
+            if (socket) {
+                addDebugLog(`  Connected: ${socket.connected}`);
+                addDebugLog(`  Socket ID: ${socket.id}`);
+                addDebugLog(`  Namespace: ${socket.nsp.name}`);
+                socket.emit('join-all');
+                addDebugLog('  Sent join-all request');
+            } else {
+                addDebugLog('  No socket found');
+            }
+        };
+        
+        window.testPopup = function() {
+            addDebugLog('🧪 Testing WOW popup...');
+            showNowCallingPopup('A999', 1, 'General Service');
+        };
+        
+        window.debugServices = function() {
+            addDebugLog('🔍 Current services data:', servicesData);
+            console.log('Services:', servicesData);
+            renderQueueStats();
+        };
+        
+        // Export for debugging
+        window.FlowMaticMonitor = {
+            countersData: function() { return countersData; },
+            servicesData: function() { return servicesData; },
+            socket: function() { return socket; },
+            isConnected: function() { return isConnected; },
+            refresh: loadInitialData,
+            debugCounters: window.debugCounters,
+            debugServices: window.debugServices,
+            forceRender: window.forceRender,
+            clearCounter: window.clearCounter,
+            testConnection: window.testConnection,
+            testPopup: window.testPopup,
+            debugLog: function() { return debugLog; }
+        };
+        
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic Management Dashboard - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #faf9f6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            padding: 1rem;
+            gap: 1rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 1.25rem 2rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-symbol {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 3px 12px rgba(134, 185, 127, 0.25);
+        }
+
+        .logo-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            letter-spacing: -0.3px;
+        }
+
+        .logo-subtitle {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .demo-badge {
+            background: linear-gradient(135deg, #ff9f54, #ff8c42);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 0.5rem;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .header-stat {
+            text-align: center;
+        }
+
+        .header-stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .header-stat-label {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f8f9f6;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid #e8e7e4;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #86b97f;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        .header-time {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .header-time-main {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 0.5rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6b6b6b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-button:hover {
+            background: #f5f4f1;
+            color: #4a4a4a;
+        }
+
+        .tab-button.active {
+            background: #86b97f;
+            color: white;
+            box-shadow: 0 2px 8px rgba(134, 185, 127, 0.3);
+        }
+
+        .tab-icon {
+            font-size: 0.9rem;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background: #ffffff;
+            border: 1px solid #e8e7e4;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: #f5f4f1;
+            border: 1px solid #e8e7e4;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6b6b6b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #86b97f;
+            color: white;
+            border-color: #86b97f;
+        }
+
+        .action-btn.primary {
+            background: #86b97f;
+            color: white;
+            border-color: #86b97f;
+        }
+
+        /* Live Operations Tab */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .service-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .service-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .service-card.general .service-icon {
+            background: linear-gradient(135deg, #86b97f 0%, #7ab373 100%);
+        }
+
+        .service-card.account .service-icon {
+            background: linear-gradient(135deg, #ff9f54 0%, #ff8c42 100%);
+        }
+
+        .service-card.vip .service-icon {
+            background: linear-gradient(135deg, #9b8ce8 0%, #8b7ed8 100%);
+        }
+
+        .service-card.technical .service-icon {
+            background: linear-gradient(135deg, #64a8d1 0%, #5a96bb 100%);
+        }
+
+        .service-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        .service-prefix {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+        }
+
+        .service-status {
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .service-status.active {
+            background: rgba(134, 185, 127, 0.1);
+            color: #86b97f;
+        }
+
+        .service-status.busy {
+            background: rgba(255, 159, 84, 0.1);
+            color: #ff9f54;
+        }
+
+        .service-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .service-queue-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .queue-ticket {
+            background: white;
+            border: 1px solid #e8e7e4;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        .queue-ticket.serving {
+            background: #86b97f;
+            color: white;
+            border-color: #86b97f;
+        }
+
+        /* Visual Analytics Tab */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-section {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Circular Dials */
+        .dials-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .dial-widget {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .dial {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1rem;
+        }
+
+        .dial-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #86b97f 0deg, #86b97f var(--progress), #e8e7e4 var(--progress), #e8e7e4 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .dial-inner {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .dial-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+        }
+
+        .dial-unit {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .dial-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        /* Bar Charts */
+        .chart-container {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 1rem;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            height: 120px;
+            margin-bottom: 1rem;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #86b97f, #7ab373);
+            border-radius: 4px 4px 0 0;
+            min-height: 10px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            font-weight: 500;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #2c2c2c;
+            font-weight: 600;
+        }
+
+        /* Activity Heatmap */
+        .heatmap-container {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .heatmap-cell.low {
+            background: #f5f4f1;
+            border: 1px solid #e8e7e4;
+        }
+
+        .heatmap-cell.medium {
+            background: rgba(134, 185, 127, 0.3);
+            border: 1px solid rgba(134, 185, 127, 0.4);
+        }
+
+        .heatmap-cell.high {
+            background: rgba(134, 185, 127, 0.6);
+            border: 1px solid rgba(134, 185, 127, 0.7);
+        }
+
+        .heatmap-cell.peak {
+            background: #86b97f;
+            border: 1px solid #7ab373;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .heatmap-legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #6b6b6b;
+        }
+
+        /* Line Chart */
+        .line-chart-container {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .line-chart {
+            position: relative;
+            height: 120px;
+            margin-bottom: 1rem;
+        }
+
+        .line-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-line {
+            fill: none;
+            stroke: #86b97f;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .chart-area {
+            fill: url(#lineGradient);
+            opacity: 0.3;
+        }
+
+        .chart-dot {
+            fill: #86b97f;
+            r: 4;
+        }
+
+        .chart-dot:hover {
+            r: 6;
+            fill: #7ab373;
+        }
+
+        /* Performance Indicators */
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .indicator-card {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .indicator-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            margin: 0 auto 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .indicator-card.excellent .indicator-icon {
+            background: linear-gradient(135deg, #86b97f, #7ab373);
+        }
+
+        .indicator-card.good .indicator-icon {
+            background: linear-gradient(135deg, #64a8d1, #5a96bb);
+        }
+
+        .indicator-card.warning .indicator-icon {
+            background: linear-gradient(135deg, #ff9f54, #ff8c42);
+        }
+
+        .indicator-card.critical .indicator-icon {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        }
+
+        .indicator-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 0.25rem;
+        }
+
+        .indicator-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .indicator-card.excellent .indicator-value {
+            color: #86b97f;
+        }
+
+        .indicator-card.good .indicator-value {
+            color: #64a8d1;
+        }
+
+        .indicator-card.warning .indicator-value {
+            color: #ff9f54;
+        }
+
+        .indicator-card.critical .indicator-value {
+            color: #ff6b6b;
+        }
+
+        .indicator-change {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            background: #f8f9f6;
+        }
+
+        .activity-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #86b97f;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+        }
+
+        .activity-text {
+            flex: 1;
+            font-size: 0.8rem;
+            color: #4a4a4a;
+        }
+
+        .activity-time {
+            font-size: 0.7rem;
+            color: #9b9b9b;
+        }
+
+        /* Other tabs - simplified for demo */
+        .staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .agent-card {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .agent-avatar {
+            width: 48px;
+            height: 48px;
+            background: #86b97f;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .agent-details {
+            flex: 1;
+        }
+
+        .agent-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        .agent-counter {
+            font-size: 0.8rem;
+            color: #6b6b6b;
+        }
+
+        .agent-status {
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .agent-status.serving {
+            background: rgba(134, 185, 127, 0.1);
+            color: #86b97f;
+        }
+
+        .agent-status.available {
+            background: rgba(100, 168, 209, 0.1);
+            color: #64a8d1;
+        }
+
+        .agent-status.break {
+            background: rgba(255, 159, 84, 0.1);
+            color: #ff9f54;
+        }
+
+        .agent-current {
+            background: white;
+            border: 1px solid #e8e7e4;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .current-ticket {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #86b97f;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-service {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+        }
+
+        .agent-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #6b6b6b;
+            margin-top: 0.25rem;
+        }
+
+        /* Performance Cards */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .performance-card {
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .performance-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2c2c2c;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .performance-label {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .performance-change {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+        }
+
+        .performance-change.positive {
+            background: rgba(134, 185, 127, 0.1);
+            color: #86b97f;
+        }
+
+        .performance-change.negative {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+        }
+
+        /* System Health */
+        .system-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .system-metrics {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .system-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9f6;
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+        }
+
+        .system-metric-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+
+        .system-metric-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c2c2c;
+        }
+
+        .system-health-bar {
+            background: #e8e7e4;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #86b97f 0%, #7ab373 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Alerts */
+        .alerts-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .alert-card {
+            border: 1px solid #e8e7e4;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-card.info {
+            background: rgba(100, 168, 209, 0.05);
+            border-color: rgba(100, 168, 209, 0.2);
+        }
+
+        .alert-card.warning {
+            background: rgba(255, 159, 84, 0.05);
+            border-color: rgba(255, 159, 84, 0.2);
+        }
+
+        .alert-card.success {
+            background: rgba(134, 185, 127, 0.05);
+            border-color: rgba(134, 185, 127, 0.2);
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .alert-card.info .alert-icon {
+            background: rgba(100, 168, 209, 0.1);
+            color: #64a8d1;
+        }
+
+        .alert-card.warning .alert-icon {
+            background: rgba(255, 159, 84, 0.1);
+            color: #ff9f54;
+        }
+
+        .alert-card.success .alert-icon {
+            background: rgba(134, 185, 127, 0.1);
+            color: #86b97f;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c2c2c;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-message {
+            font-size: 0.9rem;
+            color: #6b6b6b;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-time {
+            font-size: 0.8rem;
+            color: #9b9b9b;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .header {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-stats {
+                justify-content: center;
+            }
+            
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .system-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-container {
+                padding: 0.5rem;
+            }
+            
+            .tab-navigation {
+                padding: 0.25rem;
+            }
+            
+            .tab-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-area">
+                <div class="logo-symbol">📊</div>
+                <div>
+                    <div class="logo-title">
+                        FlowMatic Dashboard
+                        <span class="demo-badge">Demo</span>
+                    </div>
+                    <div class="logo-subtitle">Operations Management</div>
+                </div>
+            </div>
+            
+            <div class="header-stats">
+                <div class="header-stat">
+                    <div class="header-stat-value">47</div>
+                    <div class="header-stat-label">Total Served</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-value">12</div>
+                    <div class="header-stat-label">In Queue</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-value">4.2</div>
+                    <div class="header-stat-label">Avg Wait (min)</div>
+                </div>
+            </div>
+            
+            <div class="system-status">
+                <div class="status-indicator"></div>
+                <span class="status-text">All Systems Online</span>
+            </div>
+            
+            <div class="header-time">
+                <div class="header-time-main" id="currentTime">10:45 AM</div>
+                <div id="currentDate">Monday, June 27, 2025</div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="operations">
+                <span class="tab-icon">🎯</span>
+                Live Operations
+            </button>
+            <button class="tab-button" data-tab="staff">
+                <span class="tab-icon">👥</span>
+                Staff & Counters
+            </button>
+            <button class="tab-button" data-tab="performance">
+                <span class="tab-icon">📈</span>
+                Performance
+            </button>
+            <button class="tab-button" data-tab="analytics">
+                <span class="tab-icon">📊</span>
+                Visual Analytics
+            </button>
+            <button class="tab-button" data-tab="system">
+                <span class="tab-icon">⚡</span>
+                System Health
+            </button>
+            <button class="tab-button" data-tab="alerts">
+                <span class="tab-icon">🔔</span>
+                Alerts & Reports
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Live Operations Tab -->
+            <div class="tab-panel active" id="operations">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        🎯 Live Queue Operations
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Refresh</button>
+                        <button class="action-btn">Export</button>
+                        <button class="action-btn primary">Emergency Reset</button>
+                    </div>
+                </div>
+                
+                <div class="services-grid">
+                    <!-- General Service -->
+                    <div class="service-card general">
+                        <div class="service-header">
+                            <div class="service-info">
+                                <div class="service-icon">📋</div>
+                                <div>
+                                    <div class="service-name">General Service</div>
+                                    <div class="service-prefix">Prefix: A</div>
+                                </div>
+                            </div>
+                            <div class="service-status active">Active</div>
+                        </div>
+                        
+                        <div class="service-metrics">
+                            <div class="metric">
+                                <div class="metric-value">5</div>
+                                <div class="metric-label">Waiting</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">2</div>
+                                <div class="metric-label">Serving</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">3.5</div>
+                                <div class="metric-label">Avg Wait</div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-queue-list">
+                            <div class="queue-ticket serving">A043</div>
+                            <div class="queue-ticket serving">A044</div>
+                            <div class="queue-ticket">A045</div>
+                            <div class="queue-ticket">A046</div>
+                            <div class="queue-ticket">A047</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Service -->
+                    <div class="service-card account">
+                        <div class="service-header">
+                            <div class="service-info">
+                                <div class="service-icon">💼</div>
+                                <div>
+                                    <div class="service-name">Account Services</div>
+                                    <div class="service-prefix">Prefix: B</div>
+                                </div>
+                            </div>
+                            <div class="service-status busy">Busy</div>
+                        </div>
+                        
+                        <div class="service-metrics">
+                            <div class="metric">
+                                <div class="metric-value">3</div>
+                                <div class="metric-label">Waiting</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">1</div>
+                                <div class="metric-label">Serving</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">6.2</div>
+                                <div class="metric-label">Avg Wait</div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-queue-list">
+                            <div class="queue-ticket serving">B212</div>
+                            <div class="queue-ticket">B213</div>
+                            <div class="queue-ticket">B214</div>
+                            <div class="queue-ticket">B215</div>
+                        </div>
+                    </div>
+                    
+                    <!-- VIP Service -->
+                    <div class="service-card vip">
+                        <div class="service-header">
+                            <div class="service-info">
+                                <div class="service-icon">⭐</div>
+                                <div>
+                                    <div class="service-name">VIP Services</div>
+                                    <div class="service-prefix">Prefix: V</div>
+                                </div>
+                            </div>
+                            <div class="service-status active">Active</div>
+                        </div>
+                        
+                        <div class="service-metrics">
+                            <div class="metric">
+                                <div class="metric-value">1</div>
+                                <div class="metric-label">Waiting</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">1</div>
+                                <div class="metric-label">Serving</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">1.8</div>
+                                <div class="metric-label">Avg Wait</div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-queue-list">
+                            <div class="queue-ticket serving">V007</div>
+                            <div class="queue-ticket">V008</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Technical Service -->
+                    <div class="service-card technical">
+                        <div class="service-header">
+                            <div class="service-info">
+                                <div class="service-icon">🔧</div>
+                                <div>
+                                    <div class="service-name">Technical Support</div>
+                                    <div class="service-prefix">Prefix: T</div>
+                                </div>
+                            </div>
+                            <div class="service-status active">Active</div>
+                        </div>
+                        
+                        <div class="service-metrics">
+                            <div class="metric">
+                                <div class="metric-value">3</div>
+                                <div class="metric-label">Waiting</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">1</div>
+                                <div class="metric-label">Serving</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value">4.7</div>
+                                <div class="metric-label">Avg Wait</div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-queue-list">
+                            <div class="queue-ticket serving">T125</div>
+                            <div class="queue-ticket">T126</div>
+                            <div class="queue-ticket">T127</div>
+                            <div class="queue-ticket">T128</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff & Counters Tab -->
+            <div class="tab-panel" id="staff">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        👥 Staff & Counter Management
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Add Agent</button>
+                        <button class="action-btn">Manage Breaks</button>
+                        <button class="action-btn primary">Reassign Counters</button>
+                    </div>
+                </div>
+                
+                <div class="staff-grid">
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-info">
+                                <div class="agent-avatar">JS</div>
+                                <div class="agent-details">
+                                    <div class="agent-name">John Smith</div>
+                                    <div class="agent-counter">Counter 1 • General Service</div>
+                                </div>
+                            </div>
+                            <div class="agent-status serving">Serving</div>
+                        </div>
+                        
+                        <div class="agent-current">
+                            <div class="current-ticket">A043</div>
+                            <div class="current-service">Started: 10:42 AM • 3 min ago</div>
+                        </div>
+                        
+                        <div class="agent-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Served Today</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">4.2</div>
+                                <div class="stat-label">Avg Time (min)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-info">
+                                <div class="agent-avatar">MJ</div>
+                                <div class="agent-details">
+                                    <div class="agent-name">Mary Johnson</div>
+                                    <div class="agent-counter">Counter 2 • Account Service</div>
+                                </div>
+                            </div>
+                            <div class="agent-status serving">Serving</div>
+                        </div>
+                        
+                        <div class="agent-current">
+                            <div class="current-ticket">B212</div>
+                            <div class="current-service">Started: 10:38 AM • 7 min ago</div>
+                        </div>
+                        
+                        <div class="agent-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">Served Today</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">5.1</div>
+                                <div class="stat-label">Avg Time (min)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-info">
+                                <div class="agent-avatar">RB</div>
+                                <div class="agent-details">
+                                    <div class="agent-name">Robert Brown</div>
+                                    <div class="agent-counter">VIP Counter • VIP Service</div>
+                                </div>
+                            </div>
+                            <div class="agent-status serving">Serving</div>
+                        </div>
+                        
+                        <div class="agent-current">
+                            <div class="current-ticket">V007</div>
+                            <div class="current-service">Started: 10:40 AM • 5 min ago</div>
+                        </div>
+                        
+                        <div class="agent-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">6</div>
+                                <div class="stat-label">Served Today</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3.8</div>
+                                <div class="stat-label">Avg Time (min)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-info">
+                                <div class="agent-avatar">SW</div>
+                                <div class="agent-details">
+                                    <div class="agent-name">Sarah Wilson</div>
+                                    <div class="agent-counter">Tech Counter • Technical Support</div>
+                                </div>
+                            </div>
+                            <div class="agent-status break">On Break</div>
+                        </div>
+                        
+                        <div class="agent-current">
+                            <div class="current-ticket">Break Time</div>
+                            <div class="current-service">Started: 10:30 AM • Returns: 10:50 AM</div>
+                        </div>
+                        
+                        <div class="agent-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Served Today</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">6.2</div>
+                                <div class="stat-label">Avg Time (min)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-panel" id="performance">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        📈 Performance Analytics
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Daily Report</button>
+                        <button class="action-btn">Weekly Trends</button>
+                        <button class="action-btn primary">Export Data</button>
+                    </div>
+                </div>
+                
+                <div class="performance-grid">
+                    <div class="performance-card">
+                        <div class="performance-value">96%</div>
+                        <div class="performance-label">System Efficiency</div>
+                        <div class="performance-change positive">+2.1% vs yesterday</div>
+                    </div>
+                    
+                    <div class="performance-card">
+                        <div class="performance-value">47</div>
+                        <div class="performance-label">Customers Served</div>
+                        <div class="performance-change positive">+8 vs yesterday</div>
+                    </div>
+                    
+                    <div class="performance-card">
+                        <div class="performance-value">4.2</div>
+                        <div class="performance-label">Avg Service Time (min)</div>
+                        <div class="performance-change negative">+0.3 vs target</div>
+                    </div>
+                    
+                    <div class="performance-card">
+                        <div class="performance-value">98%</div>
+                        <div class="performance-label">Customer Satisfaction</div>
+                        <div class="performance-change positive">+1.5% this week</div>
+                    </div>
+                    
+                    <div class="performance-card">
+                        <div class="performance-value">2.8</div>
+                        <div class="performance-label">Avg Wait Time (min)</div>
+                        <div class="performance-change positive">-0.5 vs yesterday</div>
+                    </div>
+                    
+                    <div class="performance-card">
+                        <div class="performance-value">12</div>
+                        <div class="performance-label">Peak Queue Size</div>
+                        <div class="performance-change positive">-3 vs yesterday</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Analytics Tab -->
+            <div class="tab-panel" id="analytics">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        📊 Visual Analytics & Insights
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Live View</button>
+                        <button class="action-btn">Historical</button>
+                        <button class="action-btn primary">Full Screen</button>
+                    </div>
+                </div>
+                
+                <!-- Top Section: Dials and Charts -->
+                <div class="analytics-grid">
+                    <!-- Performance Dials -->
+                    <div class="analytics-section">
+                        <div class="section-subtitle">🎯 Key Performance Indicators</div>
+                        <div class="dials-container">
+                            <div class="dial-widget">
+                                <div class="dial">
+                                    <div class="dial-circle" style="--progress: 346deg;">
+                                        <div class="dial-inner">
+                                            <div class="dial-value">96</div>
+                                            <div class="dial-unit">%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dial-label">System Efficiency</div>
+                            </div>
+                            
+                            <div class="dial-widget">
+                                <div class="dial">
+                                    <div class="dial-circle" style="--progress: 295deg;">
+                                        <div class="dial-inner">
+                                            <div class="dial-value">82</div>
+                                            <div class="dial-unit">%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dial-label">Queue Flow Rate</div>
+                            </div>
+                            
+                            <div class="dial-widget">
+                                <div class="dial">
+                                    <div class="dial-circle" style="--progress: 353deg;">
+                                        <div class="dial-inner">
+                                            <div class="dial-value">98</div>
+                                            <div class="dial-unit">%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dial-label">Customer Satisfaction</div>
+                            </div>
+                            
+                            <div class="dial-widget">
+                                <div class="dial">
+                                    <div class="dial-circle" style="--progress: 158deg;">
+                                        <div class="dial-inner">
+                                            <div class="dial-value">44</div>
+                                            <div class="dial-unit">%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dial-label">Agent Utilization</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Service Volume Chart -->
+                    <div class="analytics-section">
+                        <div class="section-subtitle">📈 Service Volume Today</div>
+                        <div class="chart-container">
+                            <div class="chart-title">Customers Served by Service</div>
+                            <div class="bar-chart">
+                                <div class="bar" style="height: 85%;">
+                                    <div class="bar-value">17</div>
+                                    <div class="bar-label">General</div>
+                                </div>
+                                <div class="bar" style="height: 65%;">
+                                    <div class="bar-value">13</div>
+                                    <div class="bar-label">Account</div>
+                                </div>
+                                <div class="bar" style="height: 40%;">
+                                    <div class="bar-value">8</div>
+                                    <div class="bar-label">VIP</div>
+                                </div>
+                                <div class="bar" style="height: 55%;">
+                                    <div class="bar-value">11</div>
+                                    <div class="bar-label">Technical</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Middle Section: Activity Heatmap and Trends -->
+                <div class="analytics-grid">
+                    <!-- Hourly Activity Heatmap -->
+                    <div class="analytics-section">
+                        <div class="section-subtitle">🔥 Activity Heatmap (Today)</div>
+                        <div class="heatmap-container">
+                            <div class="chart-title">Customer Traffic by Hour</div>
+                            <div class="heatmap-grid">
+                                <div class="heatmap-cell low" title="8:00 AM - 2 customers"></div>
+                                <div class="heatmap-cell low" title="9:00 AM - 3 customers"></div>
+                                <div class="heatmap-cell medium" title="10:00 AM - 7 customers"></div>
+                                <div class="heatmap-cell high" title="11:00 AM - 12 customers"></div>
+                                <div class="heatmap-cell peak" title="12:00 PM - 15 customers"></div>
+                                <div class="heatmap-cell peak" title="1:00 PM - 14 customers"></div>
+                                <div class="heatmap-cell high" title="2:00 PM - 11 customers"></div>
+                                <div class="heatmap-cell medium" title="3:00 PM - 8 customers"></div>
+                                <div class="heatmap-cell medium" title="4:00 PM - 6 customers"></div>
+                                <div class="heatmap-cell low" title="5:00 PM - 4 customers"></div>
+                                <div class="heatmap-cell low" title="6:00 PM - 2 customers"></div>
+                                <div class="heatmap-cell low" title="7:00 PM - 1 customer"></div>
+                            </div>
+                            <div class="heatmap-legend">
+                                <span>8 AM</span>
+                                <span>Peak: 12-1 PM</span>
+                                <span>7 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Wait Time Trends -->
+                    <div class="analytics-section">
+                        <div class="section-subtitle">📉 Wait Time Trends</div>
+                        <div class="line-chart-container">
+                            <div class="chart-title">Average Wait Time (Last 7 Days)</div>
+                            <div class="line-chart">
+                                <svg viewBox="0 0 300 100">
+                                    <defs>
+                                        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#86b97f;stop-opacity:0.3" />
+                                            <stop offset="100%" style="stop-color:#86b97f;stop-opacity:0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path class="chart-area" d="M 0 80 L 50 60 L 100 70 L 150 45 L 200 50 L 250 40 L 300 35 L 300 100 L 0 100 Z" />
+                                    <path class="chart-line" d="M 0 80 L 50 60 L 100 70 L 150 45 L 200 50 L 250 40 L 300 35" />
+                                    <circle class="chart-dot" cx="0" cy="80" />
+                                    <circle class="chart-dot" cx="50" cy="60" />
+                                    <circle class="chart-dot" cx="100" cy="70" />
+                                    <circle class="chart-dot" cx="150" cy="45" />
+                                    <circle class="chart-dot" cx="200" cy="50" />
+                                    <circle class="chart-dot" cx="250" cy="40" />
+                                    <circle class="chart-dot" cx="300" cy="35" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Section: Performance Indicators and Activity Feed -->
+                <div class="analytics-grid">
+                    <!-- Performance Indicators -->
+                    <div class="analytics-section">
+                        <div class="section-subtitle">⚡ Real-time Indicators</div>
+                        <div class="indicators-grid">
+                            <div class="indicator-card excellent">
+                                <div class="indicator-icon">✓</div>
+                                <div class="indicator-title">Service Quality</div>
+                                <div class="indicator-value">Excellent</div>
+                                <div class="indicator-change">+2.1% from yesterday</div>
+                            </div>
+                            
+                            <div class="indicator-card good">
+                                <div class="indicator-icon">🎯</div>
+                                <div class="indicator-title">Queue Management</div>
+                                <div class="indicator-value">Good</div>
+                                <div class="indicator-change">Within targets</div>
+                            </div>
+                            
+                            <div class="indicator-card warning">
+                                <div class="indicator-icon">⚠️</div>
+                                <div class="indicator-title">Peak Load</div>
+                                <div class="indicator-value">Moderate</div>
+                                <div class="indicator-change">Monitor closely</div>
+                            </div>
+                            
+                            <div class="indicator-card excellent">
+                                <div class="indicator-icon">⚡</div>
+                                <div class="indicator-title">System Health</div>
+                                <div class="indicator-value">Optimal</div>
+                                <div class="indicator-change">All systems green</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Activity Feed -->
+                    <div class="analytics-section">
+                        <div class="section-subtitle">🔴 Live Activity Feed</div>
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">Ticket A048 called to Counter 1</div>
+                                <div class="activity-time">Just now</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">Customer completed service at VIP Counter</div>
+                                <div class="activity-time">1 min ago</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">New ticket B216 generated for Account Service</div>
+                                <div class="activity-time">2 min ago</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">Agent Sarah Wilson returned from break</div>
+                                <div class="activity-time">3 min ago</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">Ticket T129 completed at Technical Counter</div>
+                                <div class="activity-time">4 min ago</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">Queue threshold alert cleared for General Service</div>
+                                <div class="activity-time">5 min ago</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">Agent John Smith called next ticket A047</div>
+                                <div class="activity-time">6 min ago</div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-indicator"></div>
+                                <div class="activity-text">System backup completed successfully</div>
+                                <div class="activity-time">15 min ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Health Tab -->
+            <div class="tab-panel" id="system">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        ⚡ System Health & Monitoring
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Diagnostics</button>
+                        <button class="action-btn">Restart</button>
+                        <button class="action-btn primary">Backup Now</button>
+                    </div>
+                </div>
+                
+                <div class="system-grid">
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: #2c2c2c;">Server Resources</h3>
+                        <div class="system-metrics">
+                            <div class="system-metric">
+                                <span class="system-metric-label">CPU Usage</span>
+                                <span class="system-metric-value">23%</span>
+                            </div>
+                            <div class="system-health-bar">
+                                <div class="health-fill" style="width: 23%"></div>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">Memory Usage</span>
+                                <span class="system-metric-value">156 MB</span>
+                            </div>
+                            <div class="system-health-bar">
+                                <div class="health-fill" style="width: 45%"></div>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">Storage Used</span>
+                                <span class="system-metric-value">2.1 GB</span>
+                            </div>
+                            <div class="system-health-bar">
+                                <div class="health-fill" style="width: 15%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: #2c2c2c;">System Status</h3>
+                        <div class="system-metrics">
+                            <div class="system-metric">
+                                <span class="system-metric-label">Active Connections</span>
+                                <span class="system-metric-value">8</span>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">Database Size</span>
+                                <span class="system-metric-value">12.4 MB</span>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">System Uptime</span>
+                                <span class="system-metric-value">72h 15m</span>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">Last Backup</span>
+                                <span class="system-metric-value">2:00 AM</span>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">Queue Database</span>
+                                <span class="system-metric-value">✅ Healthy</span>
+                            </div>
+                            
+                            <div class="system-metric">
+                                <span class="system-metric-label">Socket.IO Server</span>
+                                <span class="system-metric-value">✅ Online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts & Reports Tab -->
+            <div class="tab-panel" id="alerts">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        🔔 Alerts & System Reports
+                    </div>
+                    <div class="panel-actions">
+                        <button class="action-btn">Mark All Read</button>
+                        <button class="action-btn">Alert Settings</button>
+                        <button class="action-btn primary">Generate Report</button>
+                    </div>
+                </div>
+                
+                <div class="alerts-grid">
+                    <div class="alert-card info">
+                        <div class="alert-icon">ℹ️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">System Backup Completed Successfully</div>
+                            <div class="alert-message">Daily backup completed at 2:00 AM. All queue data and system settings have been securely backed up.</div>
+                            <div class="alert-time">2 minutes ago</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-card warning">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Queue Buildup Warning</div>
+                            <div class="alert-message">Account Services queue has reached 5+ customers. Consider deploying additional agent support or redistributing workload.</div>
+                            <div class="alert-time">5 minutes ago</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-card success">
+                        <div class="alert-icon">✅</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Performance Target Achieved</div>
+                            <div class="alert-message">Average wait time has been maintained under 5 minutes for the past 2 hours. Excellent service quality!</div>
+                            <div class="alert-time">15 minutes ago</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-card info">
+                        <div class="alert-icon">👤</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Staff Break Schedule Reminder</div>
+                            <div class="alert-message">Sarah Wilson's break ends in 10 minutes. Technical Counter will resume normal operations.</div>
+                            <div class="alert-time">20 minutes ago</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-card success">
+                        <div class="alert-icon">📊</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Daily Report Generated</div>
+                            <div class="alert-message">Yesterday's performance report is now available. 45 customers served with 97% satisfaction rate.</div>
+                            <div class="alert-time">45 minutes ago</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-card warning">
+                        <div class="alert-icon">🔧</div>
+                        <div class="alert-content">
+                            <div class="alert-title">Maintenance Window Scheduled</div>
+                            <div class="alert-message">System maintenance is scheduled for tonight at 11:00 PM - 1:00 AM. All services will be temporarily unavailable.</div>
+                            <div class="alert-time">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ManagementDashboard {
+            constructor() {
+                this.currentTab = 'operations';
+                this.init();
+            }
+
+            init() {
+                this.setupTabNavigation();
+                this.updateTime();
+                setInterval(() => this.updateTime(), 1000);
+                this.setupActionButtons();
+                this.setupAnalyticsInteractions();
+                this.simulateRealTimeUpdates();
+            }
+
+            setupAnalyticsInteractions() {
+                // Heatmap cell interactions
+                document.querySelectorAll('.heatmap-cell').forEach(cell => {
+                    cell.addEventListener('mouseenter', (e) => {
+                        const tooltip = e.target.getAttribute('title');
+                        if (tooltip) {
+                            console.log(`Heatmap: ${tooltip}`);
+                        }
+                    });
+                });
+
+                // Chart dot interactions
+                document.querySelectorAll('.chart-dot').forEach(dot => {
+                    dot.addEventListener('mouseenter', (e) => {
+                        const cy = e.target.getAttribute('cy');
+                        const waitTime = Math.round((100 - cy) / 10 * 0.5 + 2);
+                        console.log(`Wait time: ${waitTime} minutes`);
+                    });
+                });
+
+                // Dial interactions
+                document.querySelectorAll('.dial-widget').forEach(widget => {
+                    widget.addEventListener('click', (e) => {
+                        const label = widget.querySelector('.dial-label').textContent;
+                        const value = widget.querySelector('.dial-value').textContent;
+                        console.log(`${label}: ${value}%`);
+                    });
+                });
+            }
+
+            simulateRealTimeUpdates() {
+                setInterval(() => {
+                    // Update queue metrics
+                    const metrics = document.querySelectorAll('.metric-value');
+                    metrics.forEach(metric => {
+                        if (Math.random() > 0.9) {
+                            const currentValue = parseInt(metric.textContent);
+                            if (!isNaN(currentValue) && currentValue < 20) {
+                                const change = Math.random() > 0.6 ? 1 : -1;
+                                const newValue = Math.max(0, currentValue + change);
+                                metric.textContent = newValue;
+                            }
+                        }
+                    });
+
+                    // Update analytics dials
+                    if (this.currentTab === 'analytics') {
+                        this.updateAnalyticsDials();
+                        this.updateActivityFeed();
+                    }
+                }, 3000);
+
+                // Update bar chart heights occasionally
+                setInterval(() => {
+                    if (this.currentTab === 'analytics') {
+                        this.animateBarChart();
+                    }
+                }, 8000);
+            }
+
+            updateAnalyticsDials() {
+                const dials = document.querySelectorAll('.dial-circle');
+                dials.forEach(dial => {
+                    if (Math.random() > 0.7) {
+                        const currentDeg = parseInt(dial.style.getPropertyValue('--progress')) || 0;
+                        const change = (Math.random() - 0.5) * 20;
+                        const newDeg = Math.max(0, Math.min(360, currentDeg + change));
+                        const newValue = Math.round((newDeg / 360) * 100);
+                        
+                        dial.style.setProperty('--progress', `${newDeg}deg`);
+                        const valueEl = dial.querySelector('.dial-value');
+                        if (valueEl) {
+                            valueEl.textContent = newValue;
+                        }
+                    }
+                });
+            }
+
+            updateActivityFeed() {
+                const activities = [
+                    'New ticket generated for General Service',
+                    'Customer completed service at Counter 2', 
+                    'Agent break started at VIP Counter',
+                    'Queue threshold alert triggered',
+                    'System performance optimized',
+                    'Ticket recalled at Technical Counter',
+                    'Customer satisfaction feedback received',
+                    'Agent login detected at Counter 1'
+                ];
+
+                if (Math.random() > 0.8) {
+                    const feed = document.querySelector('.activity-feed');
+                    const newActivity = document.createElement('div');
+                    newActivity.className = 'activity-item';
+                    newActivity.innerHTML = `
+                        <div class="activity-indicator"></div>
+                        <div class="activity-text">${activities[Math.floor(Math.random() * activities.length)]}</div>
+                        <div class="activity-time">Just now</div>
+                    `;
+                    
+                    feed.insertBefore(newActivity, feed.firstChild);
+                    
+                    // Remove old items (keep only 8)
+                    while (feed.children.length > 8) {
+                        feed.removeChild(feed.lastChild);
+                    }
+                }
+            }
+
+            animateBarChart() {
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach(bar => {
+                    const currentHeight = parseInt(bar.style.height) || 50;
+                    const change = (Math.random() - 0.5) * 30;
+                    const newHeight = Math.max(20, Math.min(100, currentHeight + change));
+                    bar.style.height = `${newHeight}%`;
+                    
+                    // Update bar value
+                    const valueEl = bar.querySelector('.bar-value');
+                    if (valueEl) {
+                        const newValue = Math.round((newHeight / 100) * 20);
+                        valueEl.textContent = newValue;
+                    }
+                });
+            }
+
+            setupTabNavigation() {
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabPanels = document.querySelectorAll('.tab-panel');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const targetTab = e.currentTarget.dataset.tab;
+                        
+                        // Update active button
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        
+                        // Update active panel
+                        tabPanels.forEach(panel => panel.classList.remove('active'));
+                        document.getElementById(targetTab).classList.add('active');
+                        
+                        this.currentTab = targetTab;
+                        console.log(`Switched to ${targetTab} tab`);
+                    });
+                });
+            }
+
+            updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                const dateString = now.toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                document.getElementById('currentTime').textContent = timeString;
+                document.getElementById('currentDate').textContent = dateString;
+            }
+
+            setupActionButtons() {
+                document.querySelectorAll('.action-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const action = e.target.textContent.trim();
+                        console.log(`Action clicked: ${action} (Tab: ${this.currentTab})`);
+                        
+                        // Visual feedback
+                        const originalStyle = {
+                            background: e.target.style.background,
+                            color: e.target.style.color,
+                            transform: e.target.style.transform
+                        };
+                        
+                        e.target.style.background = '#86b97f';
+                        e.target.style.color = 'white';
+                        e.target.style.transform = 'scale(0.95)';
+                        
+                        setTimeout(() => {
+                            e.target.style.background = originalStyle.background;
+                            e.target.style.color = originalStyle.color;
+                            e.target.style.transform = originalStyle.transform;
+                        }, 200);
+                        
+                        // Mock action responses
+                        this.handleAction(action);
+                    });
+                });
+            }
+
+            handleAction(action) {
+                switch(action) {
+                    case 'Emergency Reset':
+                        alert('Emergency reset initiated. All queues will be cleared.');
+                        break;
+                    case 'Export':
+                    case 'Export Data':
+                        console.log('Exporting current data...');
+                        break;
+                    case 'Generate Report':
+                        console.log('Generating comprehensive report...');
+                        break;
+                    case 'Backup Now':
+                        console.log('Starting manual backup...');
+                        break;
+                    default:
+                        console.log(`Handling action: ${action}`);
+                }
+            }
+        }
+
+        // Initialize dashboard when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing Management Dashboard (Demo Version)...');
+            window.dashboard = new ManagementDashboard();
+        });
+    </script>
+</body>
+</html>

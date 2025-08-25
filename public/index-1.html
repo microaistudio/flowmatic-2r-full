@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowMatic-SOLO R2 | Queue Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid #4a5568;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #4a5568;
+            font-weight: 300;
+            margin-bottom: 1rem;
+        }
+
+        .system-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            background: #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .status-online {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .navigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .nav-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .nav-card:active {
+            transform: translateY(-4px);
+        }
+
+        .card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .kiosk { color: #48bb78; }
+        .terminal { color: #4299e1; }
+        .monitor { color: #ed8936; }
+        .customer { color: #9f7aea; }
+        .admin { color: #e53e3e; }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            font-size: 1rem;
+            color: #718096;
+            line-height: 1.5;
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Touch-friendly improvements */
+        @media (max-width: 768px) {
+            .navigation-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 1rem;
+            }
+
+            .nav-card {
+                padding: 2rem;
+                min-height: 160px;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .system-info {
+                gap: 1rem;
+            }
+
+            .info-item {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+        }
+
+        /* Large touch screens */
+        @media (min-width: 1200px) {
+            .nav-card {
+                padding: 3rem;
+                min-height: 240px;
+            }
+
+            .card-icon {
+                font-size: 4rem;
+            }
+
+            .card-title {
+                font-size: 1.8rem;
+            }
+
+            .card-description {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            opacity: 0;
+            animation: fadeIn 0.8s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Status indicator */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #48bb78;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header loading">
+        <h1 class="logo">FlowMatic-SOLO R2</h1>
+        <p class="subtitle">Professional Queue Management System</p>
+        <div class="system-info">
+            <div class="info-item">Version 2.4</div>
+            <div class="info-item status-online">
+                <span class="status-indicator"></span>System Online
+            </div>
+            <div class="info-item" id="current-time"></div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="navigation-grid loading">
+            <div class="nav-card" onclick="navigateTo('/kiosk')">
+                <span class="card-icon kiosk">🏪</span>
+                <h2 class="card-title">Customer Kiosk</h2>
+                <p class="card-description">Self-service ticket generation for customers</p>
+            </div>
+
+            <div class="nav-card" onclick="navigateTo('/terminal')">
+                <span class="card-icon terminal">💻</span>
+                <h2 class="card-title">Agent Terminal</h2>
+                <p class="card-description">Staff interface for managing customer queues</p>
+            </div>
+
+            <div class="nav-card" onclick="navigateTo('/dashboard')">
+                <span class="card-icon monitor">📺</span>
+                <h2 class="card-title">Monitor Display</h2>
+                <p class="card-description">Public display showing current queue status</p>
+            </div>
+
+            <div class="nav-card" onclick="navigateTo('/monitor')">
+                <span class="card-icon customer">👥</span>
+                <h2 class="card-title">Customer Display</h2>
+                <p class="card-description">Counter-specific customer information display</p>
+            </div>
+
+            <div class="nav-card" onclick="navigateTo('/admin')">
+                <span class="card-icon admin">⚙️</span>
+                <h2 class="card-title">Admin Panel</h2>
+                <p class="card-description">System configuration and management tools</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 FlowMatic-SOLO R2 | Professional Queue Management | Real-time Updates Active</p>
+    </footer>
+
+    <script>
+        // Navigation function
+        function navigateTo(path) {
+            // Add loading effect
+            document.body.style.opacity = '0.7';
+            document.body.style.transition = 'opacity 0.3s ease';
+            
+            // Navigate after brief delay for visual feedback
+            setTimeout(() => {
+                window.location.href = path;
+            }, 200);
+        }
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start time updates
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            // Add loading animation delays
+            setTimeout(() => {
+                document.querySelector('.header').classList.add('loading');
+            }, 100);
+
+            setTimeout(() => {
+                document.querySelector('.navigation-grid').classList.add('loading');
+            }, 300);
+
+            // Add touch feedback for mobile
+            const cards = document.querySelectorAll('.nav-card');
+            cards.forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+                
+                card.addEventListener('touchend', function() {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case '1':
+                    navigateTo('/kiosk');
+                    break;
+                case '2':
+                    navigateTo('/terminal');
+                    break;
+                case '3':
+                    navigateTo('/monitor');
+                    break;
+                case '4':
+                    navigateTo('/customer');
+                    break;
+                case '5':
+                    navigateTo('/admin');
+                    break;
+            }
+        });
+
+        // System status check (placeholder for future implementation)
+        function checkSystemStatus() {
+            // This will be implemented later to check actual server status
+            return true;
+        }
+    </script>
+</body>
+</html>
