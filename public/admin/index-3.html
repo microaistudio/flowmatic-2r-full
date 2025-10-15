@@ -5503,15 +5503,15 @@
             async loadServicesData() {
                 try {
                     console.log('Loading services data...');
-                    
-                    // Load services, stats, and performance data
-                    const [servicesData, statsData, performanceData] = await Promise.all([
-                        this.loadServicesList(),
-                        this.loadServicesStats(),
-                        this.loadServicePerformance()
-                    ]);
 
-                    this.updateServicesTable(servicesData);
+                    const services = await this.loadServicesList();
+                    this.servicesData = services;
+                    this.renderAgentServiceOptions(services);
+
+                    const statsData = this.computeServicesStats(services);
+                    const performanceData = this.computeServicePerformance(services);
+
+                    this.updateServicesTable(services);
                     this.updateServicesStats(statsData);
                     this.updateServicePerformance(performanceData);
 
@@ -5523,74 +5523,30 @@
 
             async loadServicesList() {
                 try {
-                    // This will eventually call /api/admin/services
-                    // For now, return mock data matching our system
-                    return [
-                        {
-                            id: 1,
-                            name: 'General Service',
-                            prefix: 'A',
-                            description: 'General inquiries and services',
-                            range_start: 1,
-                            range_end: 199,
-                            current_number: 45,
-                            is_active: true,
-                            estimated_service_time: 300,
-                            tickets_today: 12,
-                            avg_wait_today: 4.2
-                        },
-                        {
-                            id: 2,
-                            name: 'Account Services',
-                            prefix: 'B',
-                            description: 'Account opening, modifications',
-                            range_start: 200,
-                            range_end: 399,
-                            current_number: 223,
-                            is_active: true,
-                            estimated_service_time: 450,
-                            tickets_today: 8,
-                            avg_wait_today: 6.1
-                        },
-                        {
-                            id: 3,
-                            name: 'VIP Services',
-                            prefix: 'V',
-                            description: 'Premium customer services',
-                            range_start: 1,
-                            range_end: 99,
-                            current_number: 12,
-                            is_active: true,
-                            estimated_service_time: 180,
-                            tickets_today: 5,
-                            avg_wait_today: 1.8
-                        },
-                        {
-                            id: 4,
-                            name: 'Technical Support',
-                            prefix: 'T',
-                            description: 'Technical assistance and support',
-                            range_start: 1,
-                            range_end: 199,
-                            current_number: 89,
-                            is_active: true,
-                            estimated_service_time: 600,
-                            tickets_today: 22,
-                            avg_wait_today: 8.3
-                        }
-                    ];
+                    const response = await this.apiCall('/admin/services');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch services');
+                    }
+
+                    const data = await response.json();
+                    const services = Array.isArray(data.services) ? data.services : [];
+                    return services.map(service => ({
+                        ...service,
+                        is_active: service.is_active === true || service.is_active === 1 || service.is_active === 'true'
+                    }));
                 } catch (error) {
                     console.error('Error loading services list:', error);
                     return [];
                 }
             }
 
-            async loadServicesStats() {
-                const services = await this.loadServicesList();
+            computeServicesStats(services = []) {
                 const totalServices = services.length;
                 const activeServices = services.filter(s => s.is_active).length;
                 const totalTicketsToday = services.reduce((sum, s) => sum + (s.tickets_today || 0), 0);
-                const avgServiceTime = services.reduce((sum, s) => sum + (s.avg_wait_today || 0), 0) / services.length;
+                const avgServiceTime = services.length
+                    ? services.reduce((sum, s) => sum + (s.avg_wait_today || 0), 0) / services.length
+                    : 0;
 
                 return {
                     totalServices,
@@ -5600,8 +5556,7 @@
                 };
             }
 
-            async loadServicePerformance() {
-                const services = await this.loadServicesList();
+            computeServicePerformance(services = []) {
                 return services.map(service => ({
                     id: service.id,
                     name: service.name,
@@ -5610,6 +5565,44 @@
                     avg_wait: service.avg_wait_today || 0,
                     efficiency: this.calculateEfficiency(service.tickets_today, service.avg_wait_today)
                 }));
+            }
+
+            renderAgentServiceOptions(services = []) {
+                const container = document.getElementById('serviceAssignments');
+                if (!container) return;
+
+                if (!Array.isArray(services) || services.length === 0) {
+                    container.innerHTML = '<div class="service-assignment">No services available</div>';
+                    return;
+                }
+
+                container.innerHTML = services
+                    .map(service => {
+                        const prefix = (service.prefix || '').toString().trim() || '?';
+                        const prefixKey = prefix.toUpperCase();
+                        const badgeMap = {
+                            A: 'general',
+                            B: 'account',
+                            V: 'vip',
+                            T: 'technical'
+                        };
+                        const badgeClass = badgeMap[prefixKey] || 'general';
+                        const serviceName = service.name || `Service ${service.id}`;
+                        return `
+                            <div class="service-assignment">
+                                <label class="service-checkbox">
+                                    <input type="checkbox" name="services" value="${service.id}" data-service="${prefix}">
+                                    <span class="service-badge ${badgeClass}">${prefix}</span>
+                                    <span class="service-name">${serviceName}</span>
+                                    <select class="priority-select" name="priority_${service.id}">
+                                        <option value="1">Primary</option>
+                                        <option value="2">Secondary</option>
+                                    </select>
+                                </label>
+                            </div>
+                        `;
+                    })
+                    .join('');
             }
 
             calculateEfficiency(tickets, avgWait) {
@@ -5862,16 +5855,15 @@
             async loadAgentsData() {
                 try {
                     console.log('Loading agents data...');
-                    
-                    // Load agents, stats, and performance data
-                    const [agentsData, statsData, performanceData, onlineData] = await Promise.all([
-                        this.loadAgentsList(),
-                        this.loadAgentsStats(),
-                        this.loadAgentPerformance(),
-                        this.loadOnlineAgents()
-                    ]);
 
-                    this.updateAgentsTable(agentsData);
+                    const agents = await this.loadAgentsList();
+                    this.agentsData = agents;
+
+                    const statsData = this.computeAgentsStats(agents);
+                    const performanceData = this.computeAgentPerformance(agents);
+                    const onlineData = this.computeOnlineAgents(agents);
+
+                    this.updateAgentsTable(agents);
                     this.updateAgentsStats(statsData);
                     this.updateAgentPerformance(performanceData);
                     this.updateOnlineAgents(onlineData);
@@ -5884,157 +5876,107 @@
 
             async loadAgentsList() {
                 try {
-                    // This will eventually call /api/admin/agents
-                    // For now, return mock data
-                    return [
-                        {
-                            id: 1,
-                            name: 'John Smith',
-                            username: 'jsmith',
-                            email: 'john.smith@company.com',
-                            role: 'agent',
-                            is_active: true,
-                            status: 'online',
-                            current_counter: 'Counter 1',
-                            services: [
-                                { service_id: 1, service_name: 'General Service', prefix: 'A', priority: 1 },
-                                { service_id: 2, service_name: 'Account Services', prefix: 'B', priority: 2 }
-                            ],
-                            performance: {
-                                tickets_today: 15,
-                                avg_service_time: 3.2,
-                                efficiency: 92
-                            }
-                        },
-                        {
-                            id: 2,
-                            name: 'Sarah Chen',
-                            username: 'schen',
-                            email: 'sarah.chen@company.com',
-                            role: 'supervisor',
-                            is_active: true,
-                            status: 'online',
-                            current_counter: 'VIP Counter',
-                            services: [
-                                { service_id: 3, service_name: 'VIP Services', prefix: 'V', priority: 1 },
-                                { service_id: 1, service_name: 'General Service', prefix: 'A', priority: 2 }
-                            ],
-                            performance: {
-                                tickets_today: 12,
-                                avg_service_time: 2.1,
-                                efficiency: 96
-                            }
-                        },
-                        {
-                            id: 3,
-                            name: 'Mike Johnson',
-                            username: 'mjohnson',
-                            email: 'mike.johnson@company.com',
-                            role: 'agent',
-                            is_active: true,
-                            status: 'break',
-                            current_counter: null,
-                            services: [
-                                { service_id: 4, service_name: 'Technical Support', prefix: 'T', priority: 1 }
-                            ],
-                            performance: {
-                                tickets_today: 8,
-                                avg_service_time: 7.5,
-                                efficiency: 78
-                            }
-                        },
-                        {
-                            id: 4,
-                            name: 'Lisa Wong',
-                            username: 'lwong',
-                            email: 'lisa.wong@company.com',
-                            role: 'agent',
-                            is_active: true,
-                            status: 'offline',
-                            current_counter: null,
-                            services: [
-                                { service_id: 1, service_name: 'General Service', prefix: 'A', priority: 1 },
-                                { service_id: 2, service_name: 'Account Services', prefix: 'B', priority: 1 }
-                            ],
-                            performance: {
-                                tickets_today: 0,
-                                avg_service_time: 0,
-                                efficiency: 0
-                            }
-                        },
-                        {
-                            id: 5,
-                            name: 'David Brown',
-                            username: 'dbrown',
-                            email: 'david.brown@company.com',
-                            role: 'admin',
-                            is_active: false,
-                            status: 'offline',
-                            current_counter: null,
-                            services: [],
-                            performance: {
-                                tickets_today: 0,
-                                avg_service_time: 0,
-                                efficiency: 0
-                            }
+                    const response = await this.apiCall('/admin/agents');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch agents');
+                    }
+
+                    const data = await response.json();
+                    const agents = Array.isArray(data.agents) ? data.agents : [];
+
+                    return agents.map(agent => ({
+                        ...agent,
+                        role: agent.role || 'agent',
+                        status: agent.status || 'offline',
+                        current_counter: agent.current_counter || null,
+                        services: (agent.services || []).map(service => ({
+                            service_id: service.service_id,
+                            service_name: service.service_name,
+                            prefix: service.prefix,
+                            priority: service.priority
+                        })),
+                        performance: agent.performance || {
+                            tickets_today: 0,
+                            avg_service_time: 0,
+                            efficiency: 100
                         }
-                    ];
+                    }));
                 } catch (error) {
                     console.error('Error loading agents list:', error);
                     return [];
                 }
             }
 
-            async loadAgentsStats() {
-                const agents = await this.loadAgentsList();
-                const totalAgents = agents.filter(a => a.is_active).length;
-                const onlineAgents = agents.filter(a => a.status === 'online').length;
-                const topPerformer = agents.reduce((top, agent) => 
-                    agent.performance.tickets_today > (top?.performance?.tickets_today || 0) ? agent : top
-                , null);
-                const totalTicketsServed = agents.reduce((sum, agent) => 
-                    sum + agent.performance.tickets_today, 0
+            computeAgentsStats(agents = []) {
+                if (!agents.length) {
+                    return {
+                        totalAgents: 0,
+                        onlineAgents: 0,
+                        topPerformer: '—',
+                        totalTicketsServed: 0
+                    };
+                }
+
+                const onlineAgents = agents.filter(agent => agent.status === 'online');
+                const totalTicketsServed = agents.reduce(
+                    (sum, agent) => sum + (agent.performance?.tickets_today || 0),
+                    0
                 );
 
+                const topPerformerAgent = [...agents]
+                    .sort((a, b) => (b.performance?.tickets_today || 0) - (a.performance?.tickets_today || 0))[0];
+
                 return {
-                    totalAgents,
-                    onlineAgents,
-                    topPerformer: topPerformer ? topPerformer.name.split(' ').map(n => n[0]).join('') : '--',
+                    totalAgents: agents.length,
+                    onlineAgents: onlineAgents.length,
+                    topPerformer: topPerformerAgent ? topPerformerAgent.name : '—',
                     totalTicketsServed
                 };
             }
 
-            async loadOnlineAgents() {
-                const agents = await this.loadAgentsList();
-                return agents.filter(agent => agent.status === 'online');
+            computeAgentPerformance(agents = []) {
+                return [...agents]
+                    .map(agent => ({
+                        id: agent.id,
+                        name: agent.name,
+                        status: agent.status,
+                        performance: agent.performance || {
+                            tickets_today: 0,
+                            avg_service_time: 0,
+                            efficiency: 100
+                        },
+                        services: agent.services || []
+                    }))
+                    .sort((a, b) => (b.performance.tickets_today || 0) - (a.performance.tickets_today || 0));
             }
 
-            async loadAgentPerformance() {
-                const agents = await this.loadAgentsList();
+            computeOnlineAgents(agents = []) {
                 return agents
-                    .filter(agent => agent.performance.tickets_today > 0)
-                    .sort((a, b) => b.performance.tickets_today - a.performance.tickets_today);
+                    .filter(agent => agent.status === 'online')
+                    .map(agent => ({
+                        id: agent.id,
+                        name: agent.name,
+                        current_counter: agent.current_counter,
+                        services: agent.services || []
+                    }));
             }
 
-            updateAgentsStats(stats) {
-                document.getElementById('totalAgents').textContent = stats.totalAgents;
-                document.getElementById('onlineAgents').textContent = stats.onlineAgents;
-                document.getElementById('topPerformer').textContent = stats.topPerformer;
-                document.getElementById('totalTicketsServed').textContent = stats.totalTicketsServed;
-                document.getElementById('liveOnlineCount').textContent = `${stats.onlineAgents} agents online`;
-            }
-
-            updateOnlineAgents(onlineAgents) {
+            updateOnlineAgents(onlineAgents = []) {
                 const grid = document.getElementById('onlineAgentsGrid');
+                if (!grid) return;
+
                 grid.innerHTML = '';
 
-                if (!onlineAgents || onlineAgents.length === 0) {
+                if (onlineAgents.length === 0) {
                     grid.innerHTML = '<div class="online-agent-loading">No agents currently online</div>';
                     return;
                 }
 
-                onlineAgents.forEach(agent => {
-                    const initials = agent.name.split(' ').map(n => n[0]).join('');
+                onlineAgents.forEach((agent) => {
+                    const initials = agent.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('');
                     const item = document.createElement('div');
                     item.className = 'online-agent-card';
                     item.innerHTML = `
@@ -6045,9 +5987,12 @@
                             <div class="agent-name">${agent.name}</div>
                             <div class="agent-status">${agent.current_counter || 'Available'}</div>
                             <div class="agent-services-badges">
-                                ${agent.services.map(s => 
-                                    `<span class="service-badge ${s.prefix.toLowerCase()}">${s.prefix}</span>`
-                                ).join('')}
+                                ${(agent.services || [])
+                                    .map(
+                                        (service) =>
+                                            `<span class="service-badge ${service.prefix?.toLowerCase() || 'general'}">${service.prefix}</span>`
+                                    )
+                                    .join('')}
                             </div>
                         </div>
                     `;
@@ -6180,6 +6125,7 @@
             }
 
             capitalizeFirst(str) {
+                if (!str) return '';
                 return str.charAt(0).toUpperCase() + str.slice(1);
             }
 
@@ -6257,13 +6203,19 @@
                         })
                     });
 
+                    const result = await response.json();
+
                     if (response.ok) {
-                        this.showSuccess(isEdit ? 'Agent updated successfully!' : 'Agent created successfully!');
+                        const baseMessage = isEdit ? 'Agent updated successfully!' : 'Agent created successfully!';
+                        if (result.temporaryPassword) {
+                            this.showSuccess(`${baseMessage} Temporary password: ${result.temporaryPassword}`);
+                        } else {
+                            this.showSuccess(baseMessage);
+                        }
                         await this.loadAgentsData();
                         return true;
                     } else {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Failed to save agent');
+                        throw new Error(result.error || result.message || 'Failed to save agent');
                     }
                 } catch (error) {
                     console.error('Error saving agent:', error);
@@ -6301,7 +6253,7 @@
 
                     if (response.ok) {
                         const result = await response.json();
-                        this.showSuccess(`Password reset successfully! New password: ${result.newPassword}`);
+                        this.showSuccess(`Password reset successfully! New password: ${result.temporaryPassword}`);
                         return true;
                     } else {
                         const error = await response.json();
@@ -6344,12 +6296,27 @@
                     const response = await this.apiCall('/admin/settings');
                     
                     if (response.ok) {
-                        const settings = await response.json();
-                        return settings;
-                    } else {
-                        // Return default settings if API call fails
-                        return this.getDefaultSettings();
+                        const payload = await response.json();
+                        if (payload?.normalized) {
+                            return {
+                                ...this.getDefaultSettings(),
+                                ...payload.normalized
+                            };
+                        }
+                        if (Array.isArray(payload?.settings)) {
+                            const normalized = payload.settings.reduce((acc, row) => {
+                                acc[row.key] = row.value;
+                                return acc;
+                            }, {});
+                            return {
+                                ...this.getDefaultSettings(),
+                                ...normalized
+                            };
+                        }
+                        return payload || this.getDefaultSettings();
                     }
+                    // Return default settings if API call fails
+                    return this.getDefaultSettings();
                 } catch (error) {
                     console.error('Error loading system settings:', error);
                     return this.getDefaultSettings();
@@ -7466,6 +7433,9 @@
             document.querySelectorAll('input[name="services"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
+            document.querySelectorAll('.priority-select').forEach(select => {
+                select.value = '1';
+            });
             
             // Clear validation messages
             const validationDiv = document.getElementById('agentValidationMessages');
@@ -7494,6 +7464,9 @@
             // Set service assignments
             document.querySelectorAll('input[name="services"]').forEach(checkbox => {
                 checkbox.checked = false;
+            });
+            document.querySelectorAll('.priority-select').forEach(select => {
+                select.value = '1';
             });
             
             agent.services.forEach(service => {
@@ -7873,6 +7846,7 @@
             if (!window.adminPanel) return;
 
             const settings = window.adminPanel.collectSettingsFromForm();
+            console.log('[Admin] Saving settings payload:', settings);
             
             // Validate settings
             const errors = window.adminPanel.validateSettings(settings);
@@ -7882,10 +7856,12 @@
             }
 
             // Disable save button during save
-            const saveButton = event.target;
-            const originalText = saveButton.textContent;
-            saveButton.disabled = true;
-            saveButton.textContent = 'Saving...';
+            const saveButton = document.querySelector('button[onclick="saveAllSettings()"]');
+            const originalText = saveButton ? saveButton.textContent : '';
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.textContent = 'Saving...';
+            }
 
             try {
                 const success = await window.adminPanel.saveSettingsData(settings);
@@ -7894,9 +7870,11 @@
                 }
             } finally {
                 // Re-enable save button
-                saveButton.disabled = false;
-                if (saveButton.textContent === 'Saving...') {
-                    saveButton.textContent = originalText;
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    if (saveButton.textContent === 'Saving...') {
+                        saveButton.textContent = originalText;
+                    }
                 }
             }
         }

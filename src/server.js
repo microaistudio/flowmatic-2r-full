@@ -4,73 +4,79 @@ const app = require('./app');
 const { initializeDatabase, closeDatabase } = require('./database/connection');
 const { setupSocketIO } = require('./realtime/socketManager');
 const { startHeartbeat, stopHeartbeat } = require('./realtime/heartbeat');
+const { initializeResetScheduler } = require('./services/systemReset');
+const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 5050;
 
 async function startServer() {
-    try {
-        await initializeDatabase();
-        
-        const server = http.createServer(app);
-        
-        // Create Socket.IO instance with CORS configuration
-        const io = socketIO(server, {
-            cors: {
-                origin: '*',
-                methods: ['GET', 'POST']
-            }
-        });
-        
-        // Make io available to routes (BUG FIX)
-        app.set('io', io);
-        
-        // Setup namespaces and connection tracking
-        setupSocketIO(io);
-        
+    await initializeDatabase();
+
+    const server = http.createServer(app);
+
+    const io = socketIO(server, {
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST']
+        }
+    });
+
+    app.set('io', io);
+    setupSocketIO(io);
+    await initializeResetScheduler(io);
+
+    await new Promise((resolve) => {
         server.listen(PORT, () => {
-            console.log(`FlowMatic-SOLO server running on port ${PORT}`);
-            console.log('Socket.IO server ready with connection tracking');
-            
-            // Start heartbeat system
+            logger.info({ port: PORT }, 'FlowMatic-SOLO server running');
+            logger.info('Socket.IO server ready with connection tracking');
             startHeartbeat(io);
+            resolve();
         });
-        
-        return server;
-    } catch (error) {
-        console.error('Failed to start server:', error);
-        process.exit(1);
-    }
+    });
+
+    return server;
 }
 
 let server;
-startServer().then(s => { server = s; });
+startServer()
+    .then((s) => {
+        server = s;
+    })
+    .catch((error) => {
+        logger.error({ err: error }, 'Failed to start server');
+        // Rethrow to allow process manager (PM2) to handle restart.
+        throw error;
+    });
 
-process.on('SIGTERM', async () => {
-    console.log('SIGTERM signal received: closing HTTP server');
-    if (server) {
-        server.close(async () => {
-            try {
-                stopHeartbeat();
-                await closeDatabase();
-                console.log('HTTP server closed');
-            } catch (error) {
-                console.error('❌ Error during shutdown:', error.message);
-            }
-        });
+async function shutdown(signal) {
+    logger.warn({ signal }, 'Shutdown signal received, closing server');
+
+    if (!server) {
+        logger.warn('Server not initialized; exiting');
+        return;
     }
+
+    await new Promise((resolve) => {
+        server.close(resolve);
+    });
+
+    try {
+        stopHeartbeat();
+        await closeDatabase();
+        logger.info('HTTP server closed gracefully');
+    } catch (error) {
+        logger.error({ err: error }, 'Error during shutdown');
+    }
+}
+
+process.on('SIGTERM', () => {
+    shutdown('SIGTERM').catch((error) =>
+        logger.error({ err: error }, 'Unhandled error during SIGTERM shutdown')
+    );
 });
 
-process.on('SIGINT', async () => {
-    console.log('SIGINT signal received: closing HTTP server');
-    if (server) {
-        server.close(async () => {
-            try {
-                stopHeartbeat();
-                await closeDatabase();
-                console.log('HTTP server closed');
-            } catch (error) {
-                console.error('❌ Error during shutdown:', error.message);
-            }
-        });
-    }
+process.on('SIGINT', () => {
+    shutdown('SIGINT').catch((error) =>
+        logger.error({ err: error }, 'Unhandled error during SIGINT shutdown')
+    );
 });

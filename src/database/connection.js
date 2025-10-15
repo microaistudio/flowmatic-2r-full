@@ -18,7 +18,7 @@ function initializeDatabase() {
         
         const isNewDatabase = !fs.existsSync(dbPath);
         
-        db = new sqlite3.Database(dbPath, (err) => {
+        db = new sqlite3.Database(dbPath, async (err) => {
             if (err) {
                 reject(err);
                 return;
@@ -32,21 +32,20 @@ function initializeDatabase() {
                 }
             });
             
-            if (isNewDatabase) {
-                console.log('Initializing new database...');
-                const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
-                
-                db.exec(schema, (err) => {
-                    if (err) {
-                        console.error('Failed to initialize database:', err);
-                        reject(err);
-                    } else {
-                        console.log('Database initialized successfully');
-                        resolve(db);
-                    }
-                });
-            } else {
+            try {
+                if (isNewDatabase) {
+                    console.log('Initializing new database...');
+                    const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
+
+                    await execAsync(db, schema);
+                    console.log('Database initialized successfully');
+                }
+
+                await runSchemaMigrations(db);
                 resolve(db);
+            } catch (migrationError) {
+                console.error('Database migration failed:', migrationError);
+                reject(migrationError);
             }
         });
     });
@@ -81,3 +80,61 @@ module.exports = {
     getDb,
     closeDatabase
 };
+
+function execAsync(database, sql) {
+    return new Promise((resolve, reject) => {
+        database.exec(sql, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+function ensureColumn(database, table, column, definition) {
+    return new Promise((resolve, reject) => {
+        database.all(`PRAGMA table_info(${table})`, (err, rows) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+
+            const exists = rows.some((row) => row.name === column);
+            if (exists) {
+                resolve();
+                return;
+            }
+
+            database.run(
+                `ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`,
+                (alterErr) => {
+                    if (alterErr) {
+                        reject(alterErr);
+                        return;
+                    }
+                    resolve();
+                }
+            );
+        });
+    });
+}
+
+async function runSchemaMigrations(database) {
+    try {
+        await ensureColumn(database, 'tickets', 'original_service_id', 'INTEGER');
+    } catch (err) {
+        if (!/duplicate column name/i.test(err.message)) {
+            throw err;
+        }
+    }
+
+    try {
+        await ensureColumn(database, 'tickets', 'transferred_at', 'DATETIME');
+    } catch (err) {
+        if (!/duplicate column name/i.test(err.message)) {
+            throw err;
+        }
+    }
+}

@@ -57,6 +57,8 @@ CREATE TABLE tickets (
     service_duration INTEGER, -- seconds from served to completed
     counter_id INTEGER,
     agent_id INTEGER,
+    original_service_id INTEGER,
+    transferred_at DATETIME,
     recall_count INTEGER DEFAULT 0,
     notes TEXT,
     FOREIGN KEY (service_id) REFERENCES services(id),
@@ -140,5 +142,7 @@ INSERT INTO settings (key, value, description, category) VALUES
 ('config.recycle_position', '3', 'Position to insert recycled tickets', 'config'),
 ('config.max_recall_count', '3', 'Maximum recall attempts', 'config'),
 ('config.auto_complete_timeout', '1800', 'Auto-complete serving tickets (seconds)', 'config'),
+('config.reset_time', '00:00', 'Daily queue reset time (HH:MM)', 'config'),
+('config.daily_reset', 'false', 'Enable automatic daily queue reset', 'config'),
 ('system.name', 'FlowMatic-SOLO', 'System name', 'branding'),
 ('system.version', '2.0.0', 'System version', 'system');

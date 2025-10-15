@@ -1450,7 +1450,50 @@
         let parkedTickets = []; // Store parked tickets
         let loadedServices = []; // Global services cache for name lookup
         let recycledTickets = []; // Store locally recycled tickets for demo purposes
+        const recycledTicketIds = new Set(); // Track recycled ticket ids for persistent UI badges
         let agentServices = []; // Services assigned to current agent
+
+        function getTicketIdentifierKeys(ticket) {
+            if (!ticket) return [];
+            const candidates = [
+                ticket.id,
+                ticket.ticketId,
+                ticket.ticket_id,
+                ticket.ticket_number,
+                ticket.number,
+                ticket.ticketNumber
+            ];
+            return candidates
+                .filter((value) => value !== null && value !== undefined && value !== '')
+                .map((value) => String(value));
+        }
+
+        function normalizeTicketIdentifierInput(input) {
+            if (Array.isArray(input)) {
+                return input
+                    .filter((value) => value !== null && value !== undefined && value !== '')
+                    .map((value) => String(value));
+            }
+            if (typeof input === 'object') {
+                return getTicketIdentifierKeys(input);
+            }
+            if (input === null || input === undefined || input === '') {
+                return [];
+            }
+            return [String(input)];
+        }
+
+        function addRecycledTicketKeys(input) {
+            normalizeTicketIdentifierInput(input).forEach((key) => recycledTicketIds.add(key));
+        }
+
+        function removeRecycledTicketKeys(input) {
+            normalizeTicketIdentifierInput(input).forEach((key) => recycledTicketIds.delete(key));
+        }
+
+        function hasRecycledTicketKey(input) {
+            return normalizeTicketIdentifierInput(input).some((key) => recycledTicketIds.has(key));
+        }
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -1564,11 +1607,13 @@
                                 }
                             });
                             
-                            // Select first service by default
+                            // Select first service only if none currently selected
                             if (select.options.length > 0) {
-                                selectedService = parseInt(select.options[0].value);
-                                select.value = selectedService;
-                                console.log('✅ Selected default service:', selectedService);
+                                if (!selectedService || Number.isNaN(Number(selectedService))) {
+                                    selectedService = parseInt(select.options[0].value);
+                                    console.log('✅ Selected default service:', selectedService);
+                                }
+                                select.value = String(selectedService);
                                 loadQueue();
                                 return;  // Success, exit the loop
                             }
@@ -1578,6 +1623,7 @@
                     }
                 } catch (error) {
                     console.warn(`❌ ${endpoint} error:`, error.message);
+                    showNotification(error.message || 'Failed to transfer ticket', 'error');
                 }
             }
             
@@ -1690,7 +1736,7 @@
         }
         
         // Initialize terminal
-        function initializeTerminal() {
+        async function initializeTerminal() {
             console.log('🚀 Initializing terminal with session:', session);
             
             // Show terminal screen
@@ -1713,8 +1759,23 @@
             console.log('💡 Note: Some API endpoints may not be implemented yet - this is normal.');
             console.log('💡 Functions will try multiple endpoint variations and fall back gracefully.');
             
-            // Load services (this will fallback to defaults if needed)
-            loadServices();
+            // Load services and agent assignments (fallback to defaults if APIs unavailable)
+            try {
+                await loadServices();
+            } catch (error) {
+                console.warn('Service load encountered an error:', error);
+            }
+
+            try {
+                await loadAgentServices();
+                updateServiceSelector();
+                // Reload queue if selector updated the current service
+                if (selectedService) {
+                    loadQueue();
+                }
+            } catch (error) {
+                console.warn('Agent service assignment load encountered an error:', error);
+            }
             
             // Setup event listeners
             setupEventListeners();
@@ -1738,7 +1799,8 @@
                 }
                 
                 // Connect to real FlowMatic Socket.IO server
-                socket = io('http://localhost:5050/terminal', {
+                const socketUrl = `${window.location.protocol}//${window.location.host}/terminal`;
+                socket = io(socketUrl, {
                     reconnection: true,
                     reconnectionDelay: 1000,
                     reconnectionAttempts: 5
@@ -1773,6 +1835,7 @@
                 socket.on('ticket-created', handleTicketCreated);
                 socket.on('ticket-called', handleTicketCalled);
                 socket.on('ticket-completed', handleTicketCompleted);
+                socket.on('ticket-recycled', handleTicketRecycled);
                 socket.on('queue-updated', handleQueueUpdated);
                 socket.on('system-alert', handleSystemAlert);
                 
@@ -1853,6 +1916,7 @@
                     }
                 } catch (error) {
                     console.warn(`❌ ${endpoint} error:`, error.message);
+                    showNotification(error.message || 'Failed to transfer ticket', 'error');
                 }
             }
             
@@ -1886,7 +1950,10 @@
                     processedTickets.splice(insertPosition, 0, {
                         ...recycledTicket,
                         isRecycled: true, // Mark as recycled for display
-                        state: 'waiting' // Ensure it shows as waiting
+                        is_recycled: true,
+                        recycled: true,
+                        state: 'recycled',
+                        ticketState: 'recycled'
                     });
                 });
                 
@@ -1908,11 +1975,23 @@
             
             queueList.innerHTML = '';
             processedTickets.forEach((ticket, index) => {
+                const ticketKeys = getTicketIdentifierKeys(ticket);
+
                 // Handle different field names from backend
                 const ticketNumber = ticket.ticket_number || ticket.number || ticket.ticketNumber || `#${ticket.id}`;
                 const createdAt = ticket.created_at || ticket.createdAt || ticket.timestamp || Date.now();
                 const priority = ticket.priority || 0;
-                const isRecycled = ticket.isRecycled || false;
+                const stateRaw = (ticket.state || ticket.ticketState || '').toString().toLowerCase();
+                const isRecycled =
+                    stateRaw === 'recycled' ||
+                    ticket.isRecycled === true ||
+                    ticket.recycled === true ||
+                    ticket.is_recycled === true ||
+                    hasRecycledTicketKey(ticketKeys);
+
+                if (isRecycled) {
+                    addRecycledTicketKeys(ticketKeys);
+                }
                 
                 // Calculate wait time more safely
                 let waitMinutes = 0;
@@ -1947,6 +2026,32 @@
             });
             
             console.log('📋 Final displayed queue with', processedTickets.length, 'tickets');
+        }
+
+        function applyQueueSnapshot(snapshot) {
+            if (!snapshot) {
+                console.log('ℹ️ No queue snapshot provided');
+                return;
+            }
+
+            const snapshotServiceId = snapshot.serviceId ?? snapshot.service_id;
+            if (
+                snapshotServiceId &&
+                selectedService &&
+                parseInt(snapshotServiceId) !== parseInt(selectedService)
+            ) {
+                console.log(
+                    'ℹ️ Queue snapshot ignored (different service):',
+                    snapshotServiceId
+                );
+                return;
+            }
+
+            if (Array.isArray(snapshot.tickets)) {
+                displayQueue(snapshot.tickets);
+            } else {
+                console.log('ℹ️ Queue snapshot missing tickets list, skipping direct update');
+            }
         }
         
         // Display parked tickets with unpark functionality
@@ -2002,35 +2107,147 @@
         }
         
         // Cherry-pick ticket from queue
-        function cherryPickTicket(ticket) {
+        async function cherryPickTicket(ticket) {
             if (currentTicket) {
                 showNotification('Please complete current ticket first', 'error');
                 return;
             }
-            
-            // Handle different field names from backend
-            const ticketNumber = ticket.ticket_number || ticket.number || ticket.ticketNumber || `#${ticket.id}`;
+
+            if (!session) {
+                showNotification('No active session', 'error');
+                return;
+            }
+
+            const counterId = session.counter?.id || session.counterId;
+            const agentId = session.agent?.id || session.agentId || session.id;
             const serviceId = ticket.service_id || ticket.serviceId || ticket.service || selectedService;
-            
-            currentTicket = {
-                ...ticket,
-                // Ensure all required fields are present
-                id: ticket.id,
-                ticket_number: ticketNumber,
-                service_id: serviceId,
-                customer_name: ticket.customer_name || ticket.customerName || 'Walk-in Customer',
-                customer_phone: ticket.customer_phone || ticket.customerPhone || '+1234567890',
-                called_at: new Date().toISOString(),
-                // Preserve original creation time
-                created_at: ticket.created_at || ticket.createdAt || new Date().toISOString()
+
+            if (!counterId || !agentId) {
+                showNotification('Missing counter or agent information', 'error');
+                return;
+            }
+
+            const payload = {
+                sessionId: session.id,
+                ticketId: ticket.id,
+                counterId,
+                agentId,
+                serviceId
             };
-            
-            updateTicketDisplay();
-            startServiceTimer();
-            addActivity('Cherry-picked', ticketNumber);
-            showNotification(`Called ticket ${ticketNumber}`, 'success');
-            
-            console.log('🎯 Cherry-picked ticket:', currentTicket);
+
+            try {
+                console.log('🎯 Cherry-picking ticket with payload:', payload);
+
+                const response = await fetch(`${API_BASE}/terminal/call-next`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    console.error('❌ Cherry-pick failed:', data);
+                    showNotification(
+                        data.error || data.message || 'Failed to call ticket',
+                        'error'
+                    );
+                    return;
+                }
+
+                const ticketData = data.ticket || data.data || data;
+                const ticketNumber =
+                    ticketData.ticket_number ||
+                    ticketData.number ||
+                    ticketData.ticketNumber ||
+                    ticket.ticket_number ||
+                    ticket.number ||
+                    `#${ticket.id}`;
+
+                const resolvedId =
+                    ticketData.id ??
+                    ticketData.ticketId ??
+                    ticketData.ticket_id ??
+                    ticket.id ??
+                    ticket.ticketId ??
+                    ticket.ticket_id ??
+                    null;
+
+                currentTicket = {
+                    ...ticketData,
+                    id: resolvedId,
+                    ticket_number: ticketNumber,
+                    number: ticketData.number || ticketNumber,
+                    ticketNumber,
+                    service_id: ticketData.service_id || ticketData.serviceId || serviceId,
+                    serviceId: ticketData.serviceId || ticketData.service_id || serviceId,
+                    customer_name:
+                        ticketData.customer_name ||
+                        ticketData.customerName ||
+                        ticket.customer_name ||
+                        ticket.customerName ||
+                        'Walk-in Customer',
+                    customerName:
+                        ticketData.customer_name ||
+                        ticketData.customerName ||
+                        ticket.customer_name ||
+                        ticket.customerName ||
+                        'Walk-in Customer',
+                    customer_phone:
+                        ticketData.customer_phone ||
+                        ticketData.customerPhone ||
+                        ticket.customer_phone ||
+                        ticket.customerPhone ||
+                        '+1234567890',
+                    customerPhone:
+                        ticketData.customer_phone ||
+                        ticketData.customerPhone ||
+                        ticket.customer_phone ||
+                        ticket.customerPhone ||
+                        '+1234567890',
+                    called_at:
+                        ticketData.called_at ||
+                        ticketData.calledAt ||
+                        new Date().toISOString(),
+                    calledAt:
+                        ticketData.called_at ||
+                        ticketData.calledAt ||
+                        new Date().toISOString(),
+                    created_at:
+                        ticketData.created_at ||
+                        ticketData.createdAt ||
+                        ticket.created_at ||
+                        ticket.createdAt ||
+                        new Date().toISOString()
+                };
+
+                const newTicketKeys = getTicketIdentifierKeys(currentTicket);
+                if (newTicketKeys.length > 0) {
+                    const newKeySet = new Set(newTicketKeys);
+                    recycledTickets = recycledTickets.filter((t) => {
+                        const keys = getTicketIdentifierKeys(t);
+                        return !keys.some((key) => newKeySet.has(key));
+                    });
+                    removeRecycledTicketKeys(newTicketKeys);
+                }
+
+                updateTicketDisplay();
+                startServiceTimer();
+
+                addActivity('Cherry-picked', ticketNumber);
+                showNotification(`Called ticket ${ticketNumber}`, 'success');
+
+                if (data.queueUpdate) {
+                    applyQueueSnapshot(data.queueUpdate);
+                } else {
+                    loadQueue();
+                }
+
+                console.log('🎯 Cherry-picked ticket via API:', currentTicket);
+            } catch (error) {
+                console.error('❌ Cherry-pick network error:', error);
+                showNotification('Failed to cherry-pick ticket - network error', 'error');
+            }
         }
         
         // Unpark ticket from park list
@@ -2147,28 +2364,47 @@
                     body: JSON.stringify(payload)
                 });
                 
+                const data = await response.json().catch(() => ({}));
+
                 if (response.ok) {
-                    const data = await response.json();
                     console.log('✅ Call-next response:', data);
                     
                     // Handle different response formats
                     const ticket = data.ticket || data.data || data;
+                    const ticketNumber = ticket.ticket_number || ticket.number || ticket.ticketNumber;
                     
+                    const resolvedId =
+                        ticket.id ??
+                        ticket.ticketId ??
+                        ticket.ticket_id ??
+                        null;
+
                     currentTicket = {
                         ...ticket,
-                        called_at: new Date().toISOString(),
-                        service_id: ticket.service_id || ticket.serviceId || selectedService
+                        id: resolvedId,
+                        ticket_number: ticketNumber,
+                        number: ticket.number || ticketNumber,
+                        ticketNumber: ticketNumber,
+                        called_at: ticket.called_at || ticket.calledAt || new Date().toISOString(),
+                        calledAt: ticket.called_at || ticket.calledAt || new Date().toISOString(),
+                        service_id: ticket.service_id || ticket.serviceId || selectedService,
+                        serviceId: ticket.serviceId || ticket.service_id || selectedService
                     };
+
+                    removeRecycledTicketKeys(currentTicket);
                     
                     updateTicketDisplay();
                     startServiceTimer();
-                    addActivity('Called', currentTicket.ticket_number || currentTicket.number);
-                    showNotification(`Called ticket ${currentTicket.ticket_number || currentTicket.number}`, 'success');
+                    addActivity('Called', ticketNumber);
+                    showNotification(`Called ticket ${ticketNumber}`, 'success');
                     
-                    // Refresh queue
-                    loadQueue();
+                    if (data.queueUpdate) {
+                        applyQueueSnapshot(data.queueUpdate);
+                    } else {
+                        loadQueue();
+                    }
                 } else {
-                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    const errorData = data || { error: 'Unknown error' };
                     console.error('❌ Call-next failed:', errorData);
                     
                     // Handle specific service assignment errors
@@ -2282,20 +2518,27 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
+
+                const data = await response.json().catch(() => ({}));
+
                 if (response.ok) {
                     const ticketNumber = currentTicket.ticket_number || currentTicket.number;
                     addActivity('Completed', ticketNumber);
                     showNotification(`Completed ticket ${ticketNumber}`, 'success');
                     currentTicket = null;
                     updateTicketDisplay();
-                    loadQueue();
+
+                    if (data.queueUpdate) {
+                        applyQueueSnapshot(data.queueUpdate);
+                    } else {
+                        loadQueue();
+                    }
                     
                     // Update stats
                     ticketsServedCount++;
                     document.getElementById('ticketsServed').textContent = ticketsServedCount;
                 } else {
-                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    const errorData = data || { error: 'Unknown error' };
                     console.error('❌ Complete failed:', errorData);
                     showNotification(errorData.error || 'Failed to complete ticket', 'error');
                 }
@@ -2374,8 +2617,7 @@
                 `${API_BASE}/terminal/no-show`,
                 `${API_BASE}/noshow`,
                 `${API_BASE}/ticket/no-show`,
-                `${API_BASE}/terminal/noshow`,
-                `${API_BASE}/ticket/state`
+                `${API_BASE}/terminal/noshow`
             ];
             
             for (let endpoint of endpoints) {
@@ -2444,6 +2686,7 @@
             ];
             
             let recycled = false;
+            let recycleResponse = null;
             
             for (let endpoint of endpoints) {
                 try {
@@ -2454,13 +2697,16 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    const data = await response.json().catch(() => ({}));
                     
                     if (response.ok) {
                         recycled = true;
+                        recycleResponse = data;
                         console.log('✅ Ticket recycled via API - should appear at position 3');
                         break;
                     } else {
-                        console.warn(`❌ ${endpoint} failed with status:`, response.status);
+                        const message = data?.error || data?.message || `Status ${response.status}`;
+                        console.warn(`❌ ${endpoint} failed with status:`, response.status, message);
                     }
                 } catch (error) {
                     console.warn(`❌ ${endpoint} error:`, error.message);
@@ -2474,6 +2720,11 @@
                 // Add to local recycled tickets with timestamp
                 recycledTickets.push({
                     ...currentTicket,
+                    state: 'recycled',
+                    ticketState: 'recycled',
+                    isRecycled: true,
+                    is_recycled: true,
+                    recycled: true,
                     recycled_at: new Date().toISOString(),
                     original_service_id: currentTicket.service_id || selectedService,
                     target_position: 3
@@ -2485,15 +2736,25 @@
             // Clear current ticket and refresh UI
             addActivity('Recycled' + (recycled ? '' : ' (Local)'), ticketNumber);
             showNotification(`Recycled ticket ${ticketNumber} - will appear at position 3${recycled ? '' : ' (local simulation)'}`, 'success');
+
+            if (recycled && recycleResponse?.ticket) {
+                addRecycledTicketKeys(recycleResponse.ticket);
+            } else {
+                addRecycledTicketKeys(currentTicket);
+            }
             
             currentTicket = null;
             updateTicketDisplay();
             
-            // Force refresh the queue multiple times to ensure recycled ticket appears
-            console.log('🔄 Refreshing queue to show recycled ticket...');
-            setTimeout(() => loadQueue(), 200);   // Quick refresh
-            setTimeout(() => loadQueue(), 1000);  // Delayed refresh
-            setTimeout(() => loadQueue(), 2000);  // Final refresh
+            if (recycled && recycleResponse?.queueUpdate) {
+                applyQueueSnapshot(recycleResponse.queueUpdate);
+            } else {
+                // Force refresh the queue multiple times to ensure recycled ticket appears
+                console.log('🔄 Refreshing queue to show recycled ticket...');
+                setTimeout(() => loadQueue(), 200);   // Quick refresh
+                setTimeout(() => loadQueue(), 1000);  // Delayed refresh
+                setTimeout(() => loadQueue(), 2000);  // Final refresh
+            }
         }
         
         // Transfer ticket
@@ -2602,13 +2863,26 @@
             }
             
             console.log('🔄 Confirming transfer to:', selectedTransferService);
-            
+
+            const agentIdValue = session.agent?.id ?? session.agentId ?? null;
+            const counterIdValue = session.counter?.id ?? session.counterId ?? null;
+
+            const agentId = Number(agentIdValue);
+            const counterId = Number(counterIdValue);
+            const targetServiceId = Number(selectedTransferService.id);
+            const ticketId = Number(currentTicket.id);
+
+            if (![agentId, counterId, targetServiceId, ticketId].every((n) => Number.isInteger(n) && n > 0)) {
+                showNotification('Cannot transfer ticket: invalid agent, counter, or service assignment.', 'error');
+                return;
+            }
+
             const payload = {
                 sessionId: session.id,
-                ticketId: currentTicket.id,
-                toServiceId: selectedTransferService.id,
-                counterId: session.counter?.id || session.counterId,
-                agentId: session.agent?.id || session.agentId || session.id
+                ticketId,
+                targetServiceId,
+                counterId,
+                agentId
             };
             
             // Try multiple transfer endpoints
@@ -2620,6 +2894,7 @@
             ];
             
             let transferred = false;
+            let transferResponse = null;
             const ticketNumber = currentTicket.ticket_number || currentTicket.number;
             
             for (let endpoint of endpoints) {
@@ -2632,26 +2907,68 @@
                         body: JSON.stringify(payload)
                     });
                     
+                    const data = await response.json().catch(() => ({}));
+                    
                     if (response.ok) {
                         transferred = true;
+                        transferResponse = data;
                         console.log('✅ Ticket transferred via API');
                         break;
                     } else {
-                        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                        console.warn(`❌ ${endpoint} failed:`, response.status, errorData);
+                        const message = data?.error || data?.message || `Request failed (${response.status})`;
+                        console.warn(`❌ ${endpoint} failed:`, response.status, message);
+                        showNotification(message, 'error');
                     }
                 } catch (error) {
                     console.warn(`❌ ${endpoint} error:`, error.message);
                 }
             }
             
+            if (!transferred) {
+                showNotification('Failed to transfer ticket. Please try again.', 'error');
+                return;
+            }
+
             // Clear current ticket and update UI
-            addActivity('Transferred' + (transferred ? '' : ' (Local)'), `${ticketNumber} to ${selectedTransferService.name}`);
-            showNotification(`Transferred to ${selectedTransferService.name}${transferred ? '' : ' (local only)'}`, 'success');
-            
+            addActivity('Transferred', `${ticketNumber} to ${selectedTransferService.name}`);
+            showNotification(`Transferred to ${selectedTransferService.name}`, 'success');
+
+            if (transferResponse?.ticket) {
+                removeRecycledTicketKeys(transferResponse.ticket);
+            } else {
+                removeRecycledTicketKeys(currentTicket);
+            }
+
             currentTicket = null;
             updateTicketDisplay();
-            loadQueue();
+
+            if (transferred && transferResponse?.queueUpdate) {
+                const snapshots = [
+                    transferResponse.queueUpdate.fromService,
+                    transferResponse.queueUpdate.toService
+                ].filter(Boolean);
+
+                let snapshotApplied = false;
+                snapshots.forEach((snapshot) => {
+                    if (!snapshot) return;
+                    const serviceId = snapshot.serviceId ?? snapshot.service_id;
+                    if (
+                        serviceId &&
+                        selectedService &&
+                        parseInt(serviceId) === parseInt(selectedService)
+                    ) {
+                        applyQueueSnapshot(snapshot);
+                        snapshotApplied = true;
+                    }
+                });
+
+                if (!snapshotApplied) {
+                    loadQueue();
+                }
+            } else {
+                loadQueue();
+            }
+
             closeTransferModal();
         }
         
@@ -2779,30 +3096,100 @@
         
         // Socket event handlers
         function handleTicketCreated(data) {
-            if (data.ticket.serviceId === selectedService) {
+            const serviceId = data?.ticket?.serviceId ?? data?.queue?.serviceId;
+            
+            if (
+                serviceId &&
+                selectedService &&
+                parseInt(serviceId) !== parseInt(selectedService)
+            ) {
+                return;
+            }
+
+            if (data?.queue) {
+                applyQueueSnapshot(data.queue);
+            } else {
                 loadQueue();
-                addActivity('New ticket', data.ticket.number);
+            }
+
+            if (data?.ticket) {
+                const number =
+                    data.ticket.ticketNumber ||
+                    data.ticket.ticket_number ||
+                    data.ticket.number;
+                addActivity('New ticket', number || 'Ticket');
             }
         }
         
         function handleTicketCalled(data) {
-            if (data.ticket.serviceId === selectedService) {
-                loadQueue();
+            const serviceId = data?.ticket?.serviceId;
+            if (
+                serviceId &&
+                selectedService &&
+                parseInt(serviceId) !== parseInt(selectedService)
+            ) {
+                return;
             }
+            removeRecycledTicketKeys(data?.ticket);
+            // Queue updates arrive via queue-updated event
         }
         
         function handleTicketCompleted(data) {
-            if (data.ticketId === currentTicket?.id) {
-                currentTicket = null;
-                updateTicketDisplay();
+            const ticketId = data?.ticketId || data?.ticket?.id;
+            const keysFromId = ticketId !== undefined && ticketId !== null ? normalizeTicketIdentifierInput(ticketId) : [];
+            const keysFromObject = getTicketIdentifierKeys(data?.ticket);
+            const ticketKeys = [...new Set([...keysFromId, ...keysFromObject])];
+
+            if (ticketKeys.length > 0) {
+                const currentTicketKeys = getTicketIdentifierKeys(currentTicket);
+                const matchesCurrent = currentTicketKeys.some((key) => ticketKeys.includes(key));
+                if (matchesCurrent) {
+                    currentTicket = null;
+                    updateTicketDisplay();
+                }
             }
+
+            removeRecycledTicketKeys(ticketKeys);
+
+            if (data?.queue) {
+                applyQueueSnapshot(data.queue);
+            } else {
+                loadQueue();
+            }
+        }
+
+        function handleTicketRecycled(data) {
+            if (!data?.ticket) {
+                return;
+            }
+
+            const serviceId = data.ticket.serviceId ?? data.ticket.service_id;
+            if (
+                serviceId &&
+                selectedService &&
+                parseInt(serviceId) !== parseInt(selectedService)
+            ) {
+                return;
+            }
+
+            addRecycledTicketKeys(data.ticket);
+
             loadQueue();
         }
         
         function handleQueueUpdated(data) {
-            if (data.serviceId === selectedService) {
-                loadQueue();
+            const snapshot = data?.queue || data;
+            const serviceId = snapshot?.serviceId ?? data?.serviceId;
+
+            if (
+                serviceId &&
+                selectedService &&
+                parseInt(serviceId) !== parseInt(selectedService)
+            ) {
+                return;
             }
+
+            applyQueueSnapshot(snapshot);
         }
         
         function handleSystemAlert(data) {
@@ -2843,38 +3230,42 @@
         
         // Check if agent is assigned to a service
         function isAgentAssignedToService(serviceId) {
-            // If no assignment data, assume Service 1 (General Service) only
             if (agentServices.length === 0) {
-                return serviceId == 1;
+                return true;
             }
-            
-            // Check if service is in agent's assigned services
-            return agentServices.some(s => s.service_id == serviceId || s.id == serviceId);
+            return agentServices.some((s) => s.service_id == serviceId || s.id == serviceId);
         }
         
         // Load agent service assignments
         async function loadAgentServices() {
             if (!session || !session.agent) {
-                console.log('🔒 No session/agent, defaulting to Service 1 only');
-                agentServices = [{ service_id: 1, id: 1 }];
+                console.log('🔒 No session/agent, leaving services unrestricted');
+                agentServices = [];
                 return;
             }
-            
-            const agentId = session.agent.id || session.agentId || session.id;
+
+            const agentIdValue = session.agent?.id ?? session.agentId ?? null;
+            if (!agentIdValue || Number.isNaN(Number(agentIdValue))) {
+                console.log('🔒 Agent ID missing or non-numeric, leaving services unrestricted');
+                agentServices = [];
+                return;
+            }
+
+            const agentId = Number(agentIdValue);
             
             try {
-                const response = await fetch(`${API_BASE}/agent/${agentId}/services`);
+                const response = await fetch(`${API_BASE}/terminal/agent/${agentId}/services`);
                 if (response.ok) {
                     const data = await response.json();
                     agentServices = data.services || data || [];
                     console.log('✅ Loaded agent service assignments:', agentServices);
                 } else {
-                    console.log('🔒 Agent services API failed, defaulting to Service 1 only');
-                    agentServices = [{ service_id: 1, id: 1 }];
+                    console.log('🔒 Agent services API failed, leaving services unrestricted');
+                    agentServices = [];
                 }
             } catch (error) {
-                console.log('🔒 Failed to load agent services, defaulting to Service 1 only');
-                agentServices = [{ service_id: 1, id: 1 }];
+                console.log('🔒 Failed to load agent services, leaving services unrestricted');
+                agentServices = [];
             }
         }
         
@@ -2885,10 +3276,19 @@
             
             currentOptions.forEach(option => {
                 const serviceId = parseInt(option.value);
+                if (Number.isNaN(serviceId)) {
+                    return;
+                }
+
+                const baseLabel = getServiceName(serviceId);
+                option.textContent = baseLabel;
+                option.disabled = false;
+                option.style.color = '';
+
                 if (!isAgentAssignedToService(serviceId)) {
                     option.style.color = '#999';
                     option.disabled = true;
-                    option.textContent += ' (Not Assigned)';
+                    option.textContent = `${baseLabel} (Not Assigned)`;
                 }
             });
             
@@ -2899,7 +3299,7 @@
             
             if (firstAssignedService) {
                 selectedService = parseInt(firstAssignedService.value);
-                select.value = selectedService;
+                select.value = String(selectedService);
                 console.log('🔒 Auto-selected assigned service:', selectedService);
             }
         }
